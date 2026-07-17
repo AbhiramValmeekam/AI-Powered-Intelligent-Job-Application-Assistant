@@ -1,20 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { ClerkProvider } from "@clerk/nextjs";
-import Script from "next/script";
+import { ThemeBoot } from "@/components/ThemeBoot";
 import "./globals.css";
-
-const themeBoot = `
-  (function () {
-    try {
-      var stored = localStorage.getItem('careeros-theme');
-      var preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-      document.documentElement.dataset.theme = (stored === 'light' || stored === 'dark') ? stored : preferred;
-    } catch (e) {
-      document.documentElement.dataset.theme = 'dark';
-    }
-  })();
-`;
 
 export const metadata: Metadata = {
   title: "CareerOS — Beyond the CV",
@@ -61,7 +49,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   const tree = (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script id="theme-boot" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeBoot }} />
+        <ThemeBoot />
       </head>
       <body>
         <noscript>
