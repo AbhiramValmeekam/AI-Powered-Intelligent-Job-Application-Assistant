@@ -76,11 +76,36 @@ cd frontend
 cp .env.example .env.local          # sets NEXT_PUBLIC_API_BASE=http://localhost:8000
 npm install
 npm run dev                         # http://localhost:3000  (or :3001 if 3000 busy)
-# Landing page (/) + /get-started (resume+JD -> backend)
+# Landing page (/) -> Command Center (/app) with all 15 modules wired in
 ```
 
 > Note: the landing UI was adapted from [PolisettyMohitK/HeroCV_V2](https://github.com/PolisettyMohitK/HeroCV_V2)
 > (`/landing`), rebranded to CareerOS and wired to the FastAPI backend.
+
+## Frontend modules (Command Center — `/app`)
+
+All 15 backend modules are wired into a single cinematic dashboard at `/app`,
+using shared UI primitives (`components/Panel.tsx`) and a typed API client
+(`lib/api.ts`). Each panel matches the landing page's visual language.
+
+| # | Module | Backend endpoint(s) |
+|---|--------|---------------------|
+| 1 | Master Profile | `POST /profiles` |
+| 2 | Job Discovery (live) | `GET /jobs/search`, `POST /jobs/from-url` |
+| 2b | Real-time Alerts | `GET /jobs/alerts`, `POST /jobs/alerts/run`, `GET /notifications` |
+| 3 | JD Intelligence | `POST /jobs/analyze` |
+| 4 | Resume Tailor | `POST /resume/tailor` |
+| 5 | Cover Letter | `POST /cover-letter` |
+| 6 | ATS Analyzer | `POST /ats/analyze` |
+| 7 | Missing Skills | `POST /skills/missing` |
+| 8 | Scam Shield (ML) | `POST /scam/check` |
+| 9 | Company Intelligence | `POST /company/research` |
+| 10 | Interview Coach | `POST /interview/questions`, `POST /interview/feedback` |
+| 11 | Application Tracker | `POST/GET/PATCH /applications` |
+| 12 | Resume Versions | `GET /resume/versions` |
+| 13 | Analytics | `GET /analytics/summary` |
+| 14 | Learning Paths | `POST /learning/recommend` |
+| 15 | Career Advisor | `POST /advisor/chat` |
 
 ## Docker
 
