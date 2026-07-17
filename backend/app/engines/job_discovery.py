@@ -174,6 +174,25 @@ def fetch_jobdataapi(query: str, location: str = "", api_key: str = "",
 
 
 # --------------------------------------------------------------------------- #
+# Relevance filter — keep only jobs that actually mention the query terms,
+# so searching "python" returns python jobs (sources like Remotive are loose).
+# --------------------------------------------------------------------------- #
+def _job_text(j: dict) -> str:
+    return " ".join([
+        j.get("title", ""), j.get("company", ""), j.get("description", ""),
+        " ".join(j.get("skills", []) or []),
+    ]).lower()
+
+def _relevant(jobs: list[dict], query: str) -> list[dict]:
+    tokens = [t for t in query.lower().split() if len(t) >= 3]
+    if not tokens:
+        return jobs
+    matched = [j for j in jobs if any(tok in _job_text(j) for tok in tokens)]
+    # Never return an empty board from over-filtering; fall back to all.
+    return matched if matched else jobs
+
+
+# --------------------------------------------------------------------------- #
 # Aggregator — try all enabled sources, never fail hard
 # --------------------------------------------------------------------------- #
 def search_jobs(query: str, location: str = "", category: str = "",
@@ -212,4 +231,7 @@ def search_jobs(query: str, location: str = "", category: str = "",
         except JobDiscoveryError as e:
             errors.append(str(e))
 
-    return {"sources": sources, "count": len(all_jobs), "jobs": all_jobs, "errors": errors}
+    # Filter to query-relevant jobs (so "python" -> python jobs).
+    filtered = _relevant(all_jobs, query) if query else all_jobs
+
+    return {"sources": sources, "count": len(filtered), "jobs": filtered, "errors": errors}

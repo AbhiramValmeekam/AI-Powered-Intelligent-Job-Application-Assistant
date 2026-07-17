@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Panel, Field, RunButton, ErrorNote, inputStyle } from "@/components/Panel";
 import * as api from "@/lib/api";
 
@@ -59,6 +59,9 @@ export function JobBoard() {
     } catch (e: any) { setError(e.message); }
     finally { setLoading(false); }
   }
+
+  // Load jobs immediately on mount (no manual search required).
+  useEffect(() => { search(); /* eslint-disable-next-line */ }, []);
 
   const types = useMemo(() => {
     const t = new Set(jobs.map((j) => (j.type || "Other").trim()).filter(Boolean));
