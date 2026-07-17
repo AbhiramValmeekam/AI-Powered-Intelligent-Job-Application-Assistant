@@ -49,10 +49,11 @@ export const profiles = {
 
 // 2/3. Job discovery
 export const jobs = {
-  search: (q: string, opts: { location?: string; useAdzuna?: boolean } = {}) => {
+  search: (q: string, opts: { location?: string; useAdzuna?: boolean; useJobdataapi?: boolean } = {}) => {
     const params = new URLSearchParams({ q });
     if (opts.location) params.set("location", opts.location);
     if (opts.useAdzuna === false) params.set("use_adzuna", "false");
+    if (opts.useJobdataapi === false) params.set("use_jobdataapi", "false");
     return request<any>(`/api/jobs/search?${params}`);
   },
   analyze: (jobDescription: string) => request<any>("/api/jobs/analyze", {

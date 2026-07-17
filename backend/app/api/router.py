@@ -113,14 +113,18 @@ async def job_from_url(body: JobUrlIn):
 # --------------------------------------------------------------------------- #
 @router.get("/jobs/search")
 async def jobs_search(q: str, location: str = "", category: str = "",
-                      use_adzuna: bool = True):
-    """Live job search across free APIs. Returns real, current postings."""
+                      use_adzuna: bool = True,
+                      use_jobdataapi: bool = True):
+    """Live job search across free APIs. Returns real, current postings with
+    direct apply URLs where the source provides them."""
     try:
         result = search_jobs(
             q, location=location, category=category,
             adzuna_app_id=settings.ADZUNA_APP_ID,
             adzuna_app_key=settings.ADZUNA_APP_KEY,
             include_adzuna=use_adzuna,
+            jobdataapi_key=settings.JOBDATAAPI_KEY,
+            include_jobdataapi=use_jobdataapi and settings.JOBDATAAPI_ENABLED,
         )
     except JobDiscoveryError as e:
         raise HTTPException(status_code=502, detail=str(e))

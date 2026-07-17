@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     # --- Job Discovery (free APIs) ---
     ADZUNA_APP_ID: str = ""
     ADZUNA_APP_KEY: str = ""
+    JOBDATAAPI_KEY: str = ""
+    JOBDATAAPI_ENABLED: bool = False
     ALERT_INTERVAL_MIN: int = 15
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173,http://localhost:3001"
 

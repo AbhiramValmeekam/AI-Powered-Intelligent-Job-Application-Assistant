@@ -48,7 +48,7 @@ export function JobBoard() {
   async function search() {
     setLoading(true); setError(null);
     try {
-      const r = await api.jobs.search(query, { location, useAdzuna: false });
+      const r = await api.jobs.search(query, { location, useAdzuna: true, useJobdataapi: true });
       setJobs(r.jobs || []);
       setSources(r.sources || {});
     } catch (e: any) { setError(e.message); }

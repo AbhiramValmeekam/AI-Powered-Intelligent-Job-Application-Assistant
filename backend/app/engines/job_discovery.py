@@ -76,11 +76,12 @@ def fetch_remotive(query: str = "", category: str = "") -> list[dict]:
 # --------------------------------------------------------------------------- #
 def fetch_adzuna(query: str, country: str = "us", location: str = "",
                  app_id: str = "", app_key: str = "", max_results: int = 20) -> list[dict]:
-    """Fetch jobs from Adzuna. Requires a free API id+key (https://developer.adzuna.com)."""
+    """Fetch jobs from Adzuna. Requires a free API id+key (https://developer.adzuna.com).
+    Returns `redirect_url` = the REAL apply URL on the company's ATS/site."""
     if not app_id or not app_key:
         raise JobDiscoveryError(
             "Adzuna requires a free API key (ADZUNA_APP_ID + ADZUNA_APP_KEY). "
-            "Get one at https://developer.adzuna.com — or use Remotive (no key)."
+            "Get one at https://developer.adzuna.com — or use Remotive/jobdataapi (no key)."
         )
     params = {
         "app_id": app_id,
@@ -107,13 +108,14 @@ def fetch_adzuna(query: str, country: str = "us", location: str = "",
         salary = ""
         if j.get("salary_min") or j.get("salary_max"):
             salary = f"{j.get('salary_min') or ''}-{j.get('salary_max') or ''}"
+        ctype = j.get("contract_type") or j.get("contract_time") or ""
         out.append(_normalize_common({
             "title": j.get("title"),
             "company": (j.get("company") or {}).get("display_name", ""),
             "location": (j.get("location") or {}).get("display_name", ""),
             "url": j.get("redirect_url", ""),
             "salary": salary,
-            "type": (j.get("contract_type") or ""),
+            "type": ctype,
             "description": j.get("description", ""),
             "skills": [],
             "postedAt": j.get("created", ""),
@@ -122,11 +124,62 @@ def fetch_adzuna(query: str, country: str = "us", location: str = "",
 
 
 # --------------------------------------------------------------------------- #
+# jobdataapi (free tier, direct ATS apply_url) — https://jobdataapi.com
+# --------------------------------------------------------------------------- #
+def fetch_jobdataapi(query: str, location: str = "", api_key: str = "",
+                     max_results: int = 20) -> list[dict]:
+    """Fetch jobs from jobdataapi. Free tier with an API key; each job carries a
+    direct `application_url` (the real apply link on the company's ATS)."""
+    if not api_key:
+        raise JobDiscoveryError(
+            "jobdataapi requires a free API key (JOBDATAAPI_KEY). "
+            "Get one at https://jobdataapi.com — or use Remotive (no key)."
+        )
+    params = {"title": query, "page_size": max_results}
+    if location:
+        params["location"] = location
+    try:
+        resp = httpx.get(
+            "https://jobdataapi.com/api/jobs/",
+            params=params,
+            headers={"Authorization": f"Api-Key {api_key}"},
+            timeout=20,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        jobs = data.get("results", [])
+    except Exception as e:
+        raise JobDiscoveryError(f"jobdataapi fetch failed: {e}")
+
+    out = []
+    for j in jobs:
+        types = j.get("types") or []
+        jtype = (types[0].get("name") if types else "") or ""
+        salary = ""
+        if j.get("salary_min") or j.get("salary_max"):
+            salary = f"{j.get('salary_min') or ''}-{j.get('salary_max') or ''} {j.get('salary_currency', '')}".strip()
+        comp = j.get("company") or {}
+        out.append(_normalize_common({
+            "title": j.get("title"),
+            "company": comp.get("name", ""),
+            "location": j.get("location", ""),
+            "url": j.get("application_url", ""),
+            "salary": salary,
+            "type": jtype,
+            "description": (j.get("description_md") or j.get("description") or "")[:2000],
+            "skills": [],
+            "postedAt": j.get("published", ""),
+        }, "jobdataapi"))
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Aggregator — try all enabled sources, never fail hard
 # --------------------------------------------------------------------------- #
 def search_jobs(query: str, location: str = "", category: str = "",
                 adzuna_app_id: str = "", adzuna_app_key: str = "",
-                include_adzuna: bool = True) -> dict:
+                include_adzuna: bool = True,
+                jobdataapi_key: str = "", include_jobdataapi: bool = False) -> dict:
     """Return {'sources': {...}, 'jobs': [...], 'errors': [...]} — resilient."""
     sources = {}
     all_jobs = []
@@ -140,13 +193,22 @@ def search_jobs(query: str, location: str = "", category: str = "",
     except JobDiscoveryError as e:
         errors.append(str(e))
 
-    # Adzuna (optional)
-    if include_adzuna:
+    # Adzuna (optional, free key)
+    if include_adzuna and adzuna_app_id and adzuna_app_key:
         try:
             adz = fetch_adzuna(query, location=location,
                                app_id=adzuna_app_id, app_key=adzuna_app_key)
             sources["adzuna"] = len(adz)
             all_jobs.extend(adz)
+        except JobDiscoveryError as e:
+            errors.append(str(e))
+
+    # jobdataapi (optional, free tier key + explicit enable)
+    if include_jobdataapi and jobdataapi_key:
+        try:
+            jd = fetch_jobdataapi(query, location=location, api_key=jobdataapi_key)
+            sources["jobdataapi"] = len(jd)
+            all_jobs.extend(jd)
         except JobDiscoveryError as e:
             errors.append(str(e))
 
