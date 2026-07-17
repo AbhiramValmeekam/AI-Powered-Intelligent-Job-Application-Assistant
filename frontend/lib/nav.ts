@@ -22,3 +22,13 @@ export const MODULES: ModuleDef[] = [
   { slug: "learning", index: "14", title: "Learning", eyebrow: "Paths" },
   { slug: "advisor", index: "15", title: "Advisor", eyebrow: "Chat" },
 ];
+
+/**
+ * Single-page dashboard sections = Home + every module, in the same order.
+ * The edge nav and scroll-spy drive off this list; section DOM ids are
+ * `sec-<slug>`.
+ */
+export const SECTIONS: ModuleDef[] = [
+  { slug: "home", index: "00", title: "Home", eyebrow: "Overview" },
+  ...MODULES,
+];

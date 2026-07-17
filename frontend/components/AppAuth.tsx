@@ -47,7 +47,7 @@ function AppAuthInner() {
   );
 }
 
-function EditProfileModal({ email, onClose }: { email: string; onClose: () => void }) {
+export function EditProfileModal({ email, onClose }: { email: string; onClose: () => void }) {
   const [fullName, setFullName] = useState("");
   const [location, setLocation] = useState("");
   const [skills, setSkills] = useState("");
