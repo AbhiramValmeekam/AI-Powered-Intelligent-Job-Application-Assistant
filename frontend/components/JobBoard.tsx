@@ -52,6 +52,7 @@ export function JobBoard({ initialQuery, initialLocation }: { initialQuery?: str
   const [kw, setKw] = useState("");
   const [srcFilter, setSrcFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [page, setPage] = useState(1);
 
   const [selected, setSelected] = useState<Job | null>(null);
 
@@ -86,6 +87,16 @@ export function JobBoard({ initialQuery, initialLocation }: { initialQuery?: str
       return true;
     });
   }, [jobs, kw, srcFilter, typeFilter]);
+
+  // 12 jobs per page; reset to page 1 whenever the result set changes.
+  const PAGE_SIZE = 12;
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const paged = useMemo(
+    () => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filtered, safePage],
+  );
+  useEffect(() => { setPage(1); }, [kw, srcFilter, typeFilter, query, location]);
 
   return (
     <Panel index="02" eyebrow="Live Job Board" title="Find your next role">
@@ -122,14 +133,14 @@ export function JobBoard({ initialQuery, initialLocation }: { initialQuery?: str
           <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} style={inputStyle}>
             {types.map((t) => <option key={t} value={t}>{t === "all" ? "All types" : t}</option>)}
           </select>
-          <span className="jobfilters__count">{filtered.length} of {jobs.length} jobs</span>
+          <span className="jobfilters__count">{filtered.length} of {jobs.length} jobs · page {safePage}/{pageCount}</span>
         </div>
       )}
 
       <ErrorNote error={error} />
 
       <div className="joblist">
-        {filtered.map((j, i) => {
+        {paged.map((j, i) => {
           const desc = stripHtml(j.description);
           return (
             <article key={i} className="jobcard jobcard--rich" onClick={() => setSelected(j)}>
@@ -165,6 +176,25 @@ export function JobBoard({ initialQuery, initialLocation }: { initialQuery?: str
           <p className="jobfilters__count">No jobs match your filters.</p>
         )}
       </div>
+
+      {pageCount > 1 && (
+        <div className="jobpager" role="navigation" aria-label="Job pages">
+          <button className="jobpager__btn" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage === 1}>← Prev</button>
+          <div className="jobpager__nums">
+            {Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                className={`jobpager__num${p === safePage ? " is-active" : ""}`}
+                onClick={() => setPage(p)}
+                aria-current={p === safePage ? "page" : undefined}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+          <button className="jobpager__btn" onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={safePage === pageCount}>Next →</button>
+        </div>
+      )}
 
       {selected && (
         <JobApplyModal job={selected} onClose={() => setSelected(null)} />
