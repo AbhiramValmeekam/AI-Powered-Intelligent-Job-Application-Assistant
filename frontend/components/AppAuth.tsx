@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { profiles, resume as resumeApi } from "@/lib/api";
 import { ResumeUpload } from "@/components/ResumeUpload";
@@ -56,6 +57,26 @@ function EditProfileModal({ email, onClose }: { email: string; onClose: () => vo
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => setMounted(true), []);
+
+  // Lock background scroll, trap focus, close on Esc — while the modal is open.
+  useEffect(() => {
+    if (!mounted) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    modalRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [mounted, onClose]);
 
   useEffect(() => {
     let cancelled = false;
@@ -106,10 +127,16 @@ function EditProfileModal({ email, onClose }: { email: string; onClose: () => vo
     }
   }
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="modal-backdrop" onClick={onClose}>
       <div
         className="modal profile-edit"
+        ref={modalRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
         onClick={(e) => e.stopPropagation()}
         data-lenis-prevent
       >
@@ -186,7 +213,8 @@ function EditProfileModal({ email, onClose }: { email: string; onClose: () => vo
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
