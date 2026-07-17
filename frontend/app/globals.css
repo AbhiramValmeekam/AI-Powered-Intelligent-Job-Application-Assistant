@@ -3622,3 +3622,149 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
   .status-btn__spinner { animation: none; }
   .status-btn__check-path { animation: none; stroke-dashoffset: 0; }
 }
+
+/* ==================================================================== */
+/* DashboardV2 — 3-column reference layout (HeroCV style)              */
+/* Orange accent (--signal) + forest hero (--forest). Jobs prioritized. */
+/* ==================================================================== */
+.db3 {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr) 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 560px at 100% -8%, color-mix(in srgb, var(--forest) 18%, transparent), transparent 58%),
+    radial-gradient(900px 520px at -6% 112%, color-mix(in srgb, var(--signal) 10%, transparent), transparent 60%),
+    var(--canvas);
+}
+
+/* ---- Left nav ---- */
+.db3__nav {
+  position: sticky; top: 0; align-self: start;
+  height: 100vh; overflow-y: auto;
+  display: flex; flex-direction: column;
+  padding: 1.4rem 0.9rem;
+  border-right: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+}
+.db3__brand { font-weight: 800; letter-spacing: 0.04em; font-size: 1.15rem; color: var(--signal); padding: 0 0.6rem 1.3rem; }
+.db3__navlist { display: flex; flex-direction: column; gap: 0.2rem; }
+.db3__navitem {
+  display: flex; align-items: center; gap: 0.75rem; width: 100%;
+  padding: 0.6rem 0.65rem; border: none; background: transparent; cursor: pointer;
+  border-radius: 11px; color: var(--ink); text-align: left;
+  opacity: 0.82; transition: background 0.16s, opacity 0.16s, transform 0.16s;
+}
+.db3__navitem:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); opacity: 1; }
+.db3__navitem.is-active { background: var(--forest); opacity: 1; color: #fff; }
+.db3__navicon { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 auto; border-radius: 9px; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.db3__navitem.is-active .db3__navicon { background: color-mix(in srgb, #fff 18%, transparent); }
+.db3__navtext { display: flex; flex-direction: column; line-height: 1.15; }
+.db3__navtitle { font-size: 0.92rem; font-weight: 600; }
+.db3__navsub { font-size: 0.66rem; letter-spacing: 0.04em; opacity: 0.55; text-transform: uppercase; }
+.db3__navfoot { margin-top: auto; padding-top: 1.2rem; border-top: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); }
+.db3__navkicker { font-size: 0.62rem; letter-spacing: 0.22em; opacity: 0.45; padding: 0 0.65rem 0.5rem; }
+.db3__footnote { font-size: 0.58rem; letter-spacing: 0.16em; opacity: 0.35; padding: 1rem 0.65rem 0; }
+
+/* ---- Center ---- */
+.db3__main { min-width: 0; padding: 0 1.6rem 4rem; }
+.db3__topbar { display: flex; align-items: center; gap: 1rem; padding: 1.1rem 0; position: sticky; top: 0; z-index: 10; background: linear-gradient(var(--canvas), color-mix(in srgb, var(--canvas) 80%, transparent)); backdrop-filter: blur(6px); }
+.db3__search { flex: 1; }
+.db3__search input {
+  width: 100%; padding: 0.7rem 1rem; border-radius: 12px;
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent); color: var(--ink); font: inherit;
+}
+.db3__search input::placeholder { color: color-mix(in srgb, var(--ink) 50%, transparent); }
+.db3__topactions { display: flex; align-items: center; gap: 0.6rem; }
+.db3__iconbtn { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; cursor: pointer; color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); }
+.db3__iconbtn:hover { background: color-mix(in srgb, var(--ink) 12%, transparent); }
+.db3__avatar { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; cursor: pointer; border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent); background: var(--forest); color: #fff; font-weight: 700; }
+.db3__avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.db3__center { display: flex; flex-direction: column; gap: 1.8rem; }
+
+/* Hero */
+.db3__hero { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1rem; align-items: center; padding: 2rem; border-radius: 22px; background: linear-gradient(135deg, var(--forest), color-mix(in srgb, var(--forest) 55%, #000)); color: #fff; overflow: hidden; }
+.db3__herokick { font-size: 0.7rem; letter-spacing: 0.22em; opacity: 0.7; }
+.db3__herotitle { font-size: clamp(1.6rem, 3.2vw, 2.5rem); font-weight: 700; letter-spacing: -0.02em; margin: 0.4rem 0 0.6rem; line-height: 1.05; }
+.db3__herocopy { opacity: 0.82; max-width: 40ch; margin-bottom: 1.2rem; }
+.db3__herographic { color: #fff; opacity: 0.9; }
+.db3__cta { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.7rem 1.1rem; border: none; border-radius: 11px; cursor: pointer; font: inherit; font-weight: 700; color: #1a1205; background: var(--signal); transition: transform 0.16s, filter 0.16s; }
+.db3__cta:hover { transform: translateY(-1px); filter: brightness(1.05); }
+.db3__cta--ghost { background: transparent; color: var(--ink); border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); }
+
+/* Section head */
+.db3__sectionhead { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.db3__eyebrow { font-size: 0.62rem; letter-spacing: 0.2em; opacity: 0.5; text-transform: uppercase; }
+.db3__h2 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; }
+.db3__link { display: inline-flex; align-items: center; gap: 0.35rem; background: none; border: none; color: var(--signal); cursor: pointer; font: inherit; font-weight: 600; }
+
+/* Job search */
+.db3__jobsearch { display: grid; grid-template-columns: 2fr 1.4fr 0.7fr auto; gap: 0.7rem; align-items: end; }
+.db3__field { display: flex; flex-direction: column; gap: 0.3rem; }
+.db3__field span { font-size: 0.68rem; letter-spacing: 0.04em; opacity: 0.6; text-transform: uppercase; }
+.db3__field input { width: 100%; padding: 0.7rem 0.85rem; border-radius: 11px; background: color-mix(in srgb, var(--ink) 7%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent); color: var(--ink); font: inherit; }
+.db3__field--sm { max-width: 110px; }
+.db3__find { padding: 0.7rem 1.2rem; border: none; border-radius: 11px; cursor: pointer; font: inherit; font-weight: 700; background: var(--signal); color: #1a1205; white-space: nowrap; }
+.db3__find:disabled { opacity: 0.6; cursor: progress; }
+.db3__disclaimer { font-size: 0.74rem; opacity: 0.5; margin-top: 0.6rem; }
+.db3__error { color: var(--signal); font-size: 0.85rem; margin-top: 0.6rem; }
+
+/* Listings */
+.db3__listings { list-style: none; padding: 0; margin: 1rem 0 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.db3__listing { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.95rem 1.1rem; border-radius: 14px; cursor: pointer; background: color-mix(in srgb, var(--ink) 5%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); transition: transform 0.16s, border-color 0.16s, background 0.16s; }
+.db3__listing:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--signal) 50%, transparent); background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.db3__listing--empty { cursor: default; opacity: 0.6; justify-content: center; }
+.db3__listingtitle { font-weight: 600; }
+.db3__listingsub { font-size: 0.82rem; opacity: 0.6; margin-top: 0.15rem; }
+.db3__listingtags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.db3__tag { font-size: 0.66rem; padding: 0.25rem 0.55rem; border-radius: 999px; background: color-mix(in srgb, var(--ink) 10%, transparent); opacity: 0.8; }
+.db3__tag--official { background: color-mix(in srgb, var(--forest) 40%, transparent); color: #fff; }
+
+/* Module portal */
+.db3__portal { position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; padding: 1.5rem clamp(1rem, 6vw, 6rem) 3rem; overflow-y: auto; background: linear-gradient(var(--canvas), color-mix(in srgb, var(--canvas) 92%, transparent)); }
+.db3__portal__bar { margin-bottom: 1rem; }
+.db3__back { background: none; border: none; color: var(--signal); cursor: pointer; font: inherit; font-weight: 600; }
+.db3__portal__body { max-width: 900px; width: 100%; margin: 0 auto; flex: 1; }
+
+/* ---- Right rail ---- */
+.db3__rail { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 1.6rem 1.4rem; display: flex; flex-direction: column; gap: 1.4rem; border-left: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); background: color-mix(in srgb, var(--ink) 4%, transparent); }
+.db3__readiness { background: color-mix(in srgb, var(--ink) 6%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); border-radius: 18px; padding: 1.3rem; text-align: center; }
+.db3__gauge { margin: 0.6rem auto; width: 120px; }
+.db3__gaugepct { fill: var(--ink); font-size: 24px; font-weight: 700; font-family: inherit; }
+.db3__gaugeinit { fill: var(--ink); font-size: 13px; opacity: 0.6; font-family: inherit; }
+.db3__greeting { font-weight: 700; font-size: 1.05rem; margin-top: 0.4rem; }
+.db3__railnote { font-size: 0.82rem; opacity: 0.65; margin: 0.5rem 0 1rem; }
+.db3__analysis { background: color-mix(in srgb, var(--ink) 6%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); border-radius: 18px; padding: 1.3rem; flex: 1; }
+.db3__chart { display: flex; flex-direction: column; align-items: center; margin: 1rem 0; }
+.db3__chartpct { font-size: 1.6rem; font-weight: 700; color: var(--signal); }
+.db3__bar { width: 46px; height: 160px; border-radius: 12px; background: color-mix(in srgb, var(--ink) 10%, transparent); display: flex; align-items: flex-end; margin: 0.4rem 0; overflow: hidden; }
+.db3__barfill { width: 100%; background: linear-gradient(var(--signal), color-mix(in srgb, var(--signal) 55%, #000)); border-radius: 12px; transition: height 0.5s ease; }
+.db3__chartx { font-size: 0.72rem; opacity: 0.5; }
+.db3__railstats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 1rem; }
+.db3__railstat { background: color-mix(in srgb, var(--ink) 6%, transparent); border-radius: 12px; padding: 0.7rem; text-align: center; }
+.db3__railnum { display: block; font-size: 1.3rem; font-weight: 700; }
+.db3__raillabel { font-size: 0.66rem; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* ---- Responsive ---- */
+@media (max-width: 1080px) {
+  .db3 { grid-template-columns: 72px minmax(0,1fr); }
+  .db3__rail { display: none; }
+  .db3__navtext, .db3__brand, .db3__navkicker, .db3__footnote { display: none; }
+  .db3__navitem { justify-content: center; }
+  .db3__jobsearch { grid-template-columns: 1fr 1fr; }
+  .db3__find { grid-column: 1 / -1; }
+}
+@media (max-width: 680px) {
+  .db3 { grid-template-columns: minmax(0,1fr); }
+  .db3__nav { display: none; }
+  .db3__hero { grid-template-columns: 1fr; }
+  .db3__herographic { display: none; }
+  .db3__jobsearch { grid-template-columns: 1fr; }
+  .db3__field--sm { max-width: none; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .db3__barfill, .db3__cta, .db3__listing, .db3__navitem, .db3__find { transition: none; }
+}
