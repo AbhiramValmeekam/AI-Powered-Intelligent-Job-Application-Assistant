@@ -17,6 +17,8 @@ function isHeading(text: string): boolean {
   if (t.length > 60) return false;                       // too long to be a heading
   const lower = t.toLowerCase().replace(/[:.\-–—\s]+$/, "");
   if (KNOWN.some((k) => lower === k || lower.endsWith(k.trim()))) return true;
+  // A short comma-separated list is a tag/skill list, not a heading.
+  if (t.includes(",") && !/[.;:]$/.test(t)) return false;
   // standalone short bold line, likely a heading
   return t.split(/\s+/).length <= 7 && !t.endsWith(".");
 }
