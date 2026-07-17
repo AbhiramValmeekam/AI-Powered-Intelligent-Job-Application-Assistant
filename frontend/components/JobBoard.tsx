@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Panel, Field, RunButton, ErrorNote, inputStyle } from "@/components/Panel";
 import * as api from "@/lib/api";
+import { parseSections } from "@/lib/describe";
 
 type Job = {
   source: string;
@@ -197,6 +198,7 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
   }
 
   const desc = stripHtml(job.description);
+  const sections = parseSections(job.description);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -227,7 +229,20 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
 
             <div className="modal__section">
               <h4>Job description</h4>
-              <p className="modal__desc">{desc || "No description provided by the source."}</p>
+              {sections.length > 1 ? (
+                <div className="modal__sections">
+                  {sections.map((s, i) => (
+                    <div key={i} className="modal__block">
+                      {s.heading && s.heading.toLowerCase() !== "description" && (
+                        <h5 className="modal__block-h">{s.heading}</h5>
+                      )}
+                      <p className="modal__block-b">{s.body || "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="modal__desc">{desc || "No description provided by the source."}</p>
+              )}
               {job.skills?.length > 0 && (
                 <div className="jobcard__tags">
                   {job.skills.map((s, k) => <span key={k} className="chip chip--match">{s}</span>)}
