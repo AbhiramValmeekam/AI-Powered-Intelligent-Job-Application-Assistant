@@ -632,16 +632,16 @@ export function CinematicLanding({ getStartedHref }: CinematicLandingProps) {
                   <span className="read__headline-line">A RECRUITER.</span>
                 </span>
               </h2>
+            </div>
+
+            <div className="read__teacher">
+              <span className="read__teacher-index">THEN / 02</span>
               <p className="read__copy">
                 See what is present, what is unclear, and what the role is
                 actually asking for. Every conclusion stays linked to evidence
                 in your CV.
               </p>
-            </div>
-
-            <div className="read__teacher">
-              <span className="read__teacher-index">THEN / 02</span>
-              <p>EXPLAIN IT LIKE A TEACHER.</p>
+              <p className="read__teacher-headline">EXPLAIN IT LIKE A TEACHER.</p>
               <span>
                 Specific feedback. Nearby skills. A practical way to improve.
               </span>
@@ -663,10 +663,6 @@ export function CinematicLanding({ getStartedHref }: CinematicLandingProps) {
                 <br />
                 MORE THAN ONE DIRECTION.
               </h2>
-              <p>
-                Search across remote, on-site, hybrid, and relocation paths.
-                Relevance comes before volume.
-              </p>
             </div>
 
             <div
@@ -678,16 +674,26 @@ export function CinematicLanding({ getStartedHref }: CinematicLandingProps) {
                 <span className="match__counter-word">CV</span>
                 <span>THE SOURCE</span>
               </div>
-              {matchRoutes.map((route, index) => (
-                <article className="match__stop" key={route.place}>
-                  <span className="match__stop-number">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <p>{route.place}</p>
-                  <h3>{route.role}</h3>
-                  <span>{route.fit}</span>
-                </article>
-              ))}
+              {matchRoutes.map((route, index) => {
+                const match = route.fit.match(/^\[(.*?)\]\s*—\s*(.*)$/);
+                return (
+                  <article className="match__stop" key={route.place}>
+                    <span className="match__stop-number">
+                      {String(index + 1).padStart(2, "0")} / {route.place}
+                    </span>
+                    <h3>{route.role}</h3>
+                    {match ? (
+                      <span className="match__stop-subtext">
+                        <strong className="match__stop-anchor">[{match[1]}]</strong>
+                        <span className="match__stop-divider"> — </span>
+                        <span className="match__stop-desc">{match[2]}</span>
+                      </span>
+                    ) : (
+                      <span className="match__stop-subtext">{route.fit}</span>
+                    )}
+                  </article>
+                );
+              })}
               <div className="match__destination">
                 <span>ROLE</span>
                 <strong>FIT, WITH CONTEXT.</strong>
