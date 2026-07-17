@@ -7,6 +7,6 @@
   "regions": ["iad1"],
   "env": {
     "NEXT_PUBLIC_GET_STARTED_URL": "/get-started",
-    "NEXT_PUBLIC_API_BASE": "@careeros-api-base"
+    "NEXT_PUBLIC_API_BASE": "http://localhost:8000"
   }
 }
