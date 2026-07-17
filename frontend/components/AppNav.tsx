@@ -7,7 +7,7 @@ import { MODULES, ModuleDef } from "@/lib/nav";
 export function AppNav() {
   const pathname = usePathname();
   return (
-    <aside className="app-nav">
+    <aside className="app-nav" data-lenis-prevent>
       <div className="app-nav__brand">
         <Link href="/">CAREER OS</Link>
         <span className="app-nav__kicker">COMMAND CENTER</span>

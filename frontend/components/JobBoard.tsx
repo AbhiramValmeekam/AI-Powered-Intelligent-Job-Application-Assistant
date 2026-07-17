@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Panel, Field, RunButton, ErrorNote, inputStyle } from "@/components/Panel";
 import * as api from "@/lib/api";
 import { parseSections } from "@/lib/describe";
+import { stopScroll, startScroll } from "@/lib/smoothScroll";
 
 type Job = {
   source: string;
@@ -178,9 +179,58 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
-  const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [submitErr, setSubmitErr] = useState<string | null>(null);
+  const [modalRef, setModalRef] = useState<HTMLDivElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => setMounted(true), []);
+
+  // Focus + scroll lock: while the popup is open, the background must not
+  // scroll and focus stays trapped inside the modal.
+  useEffect(() => {
+    if (!mounted) return;
+    stopScroll();
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const t = window.setTimeout(() => {
+      const focusable = modalRef?.querySelector<HTMLElement>(
+        'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])',
+      );
+      focusable?.focus();
+    }, 50);
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onCloseRef.current();
+        return;
+      }
+      if (e.key !== "Tab" || !modalRef) return;
+      const nodes = Array.from(
+        modalRef.querySelectorAll<HTMLElement>(
+          'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((n) => !n.hasAttribute("disabled"));
+      if (!nodes.length) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+
+    return () => {
+      window.clearTimeout(t);
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+      startScroll();
+    };
+  }, [mounted, modalRef]);
 
   async function loadProfile() {
     if (!email) return;
@@ -219,7 +269,7 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
 
   return mounted ? createPortal(
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal" onClick={(e) => e.stopPropagation()} data-lenis-prevent ref={setModalRef}>
         <button className="modal__close" onClick={onClose} aria-label="Close">✕</button>
 
         {done ? (

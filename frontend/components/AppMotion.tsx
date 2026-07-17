@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { registerLenis } from "@/lib/smoothScroll";
 
 /**
  * Cinematic motion for the Command Center interior — the same GSAP + Lenis
@@ -58,9 +59,11 @@ export function AppMotion({ children }: { children: React.ReactNode }) {
           const tick = (time: number) => lenis.raf(time * 1000);
           lenis.on("scroll", ScrollTrigger.update);
           gsap.ticker.add(tick);
+          registerLenis(lenis);
           destroySmooth = () => {
             gsap.ticker.remove(tick);
             lenis.destroy();
+            registerLenis(null);
           };
         }
 
