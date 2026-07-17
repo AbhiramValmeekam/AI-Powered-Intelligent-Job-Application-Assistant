@@ -1,15 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { ClerkProvider } from "@clerk/nextjs";
+import Script from "next/script";
 import "./globals.css";
 
-const themeBootScript = `
-  (() => {
+const themeBoot = `
+  (function () {
     try {
-      const stored = localStorage.getItem('careeros-theme');
-      const preferred = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-      document.documentElement.dataset.theme = stored === 'light' || stored === 'dark' ? stored : preferred;
-    } catch (_) {
+      var stored = localStorage.getItem('careeros-theme');
+      var preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      document.documentElement.dataset.theme = (stored === 'light' || stored === 'dark') ? stored : preferred;
+    } catch (e) {
       document.documentElement.dataset.theme = 'dark';
     }
   })();
@@ -60,7 +61,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
   const tree = (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+        <Script id="theme-boot" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeBoot }} />
       </head>
       <body>
         <noscript>
