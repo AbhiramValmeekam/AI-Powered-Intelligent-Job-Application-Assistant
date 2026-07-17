@@ -106,6 +106,15 @@ export const resume = {
     const params = email ? `?email=${encodeURIComponent(email)}` : "";
     return request<any>(`/api/resume/versions${params}`);
   },
+  master: {
+    get: (email: string) =>
+      request<any>(`/api/resume/master?email=${encodeURIComponent(email)}`),
+    upsert: (email: string, text: string) =>
+      request<any>("/api/resume/master", {
+        method: "POST",
+        body: JSON.stringify({ email, text }),
+      }),
+  },
 };
 
 // 8. Scam shield

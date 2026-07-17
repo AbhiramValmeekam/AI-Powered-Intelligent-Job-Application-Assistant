@@ -6,9 +6,8 @@ export type ModuleDef = {
 };
 
 export const MODULES: ModuleDef[] = [
-  { slug: "profile", index: "01", title: "Profile", eyebrow: "Master Profile" },
-  { slug: "jobs", index: "02", title: "Job Search", eyebrow: "Live Board" },
-  { slug: "alerts", index: "02b", title: "Alerts", eyebrow: "Real-time" },
+  { slug: "jobs", index: "01", title: "Job Search", eyebrow: "Live Board" },
+  { slug: "alerts", index: "02", title: "Alerts", eyebrow: "Real-time" },
   { slug: "jd", index: "03", title: "JD Intelligence", eyebrow: "Decode JD" },
   { slug: "tailor", index: "04", title: "Resume Tailor", eyebrow: "Tailor" },
   { slug: "cover", index: "05", title: "Cover Letter", eyebrow: "Generate" },

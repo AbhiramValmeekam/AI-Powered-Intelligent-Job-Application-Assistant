@@ -1,44 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import { Panel, Field, RunButton, ErrorNote, ResultCard, Pre, inputStyle } from "@/components/Panel";
 import * as api from "@/lib/api";
 import { JobBoard } from "@/components/JobBoard";
 import { ResumeUpload } from "@/components/ResumeUpload";
-
-/* 1. Profile */
-export function ProfileModule() {
-  const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [skills, setSkills] = useState("");
-  const [goal, setGoal] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<any>(null);
-
-  async function run() {
-    setLoading(true); setError(null);
-    try {
-      setResult(await api.profiles.upsert({
-        email, fullName,
-        skills: skills.split(",").map((s) => s.trim()).filter(Boolean),
-        careerPreferences: { goal },
-      }));
-    } catch (e: any) { setError(e.message); }
-    finally { setLoading(false); }
-  }
-  return (
-    <Panel index="01" eyebrow="Master Profile" title="Your career profile">
-      <Field label="Email"><input style={inputStyle} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" /></Field>
-      <Field label="Full name"><input style={inputStyle} value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Jane Doe" /></Field>
-      <Field label="Skills (comma separated)"><input style={inputStyle} value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="python, react, aws" /></Field>
-      <Field label="Career goal"><input style={inputStyle} value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="backend engineer" /></Field>
-      <RunButton onClick={run} loading={loading} disabled={!email}>Save profile</RunButton>
-      <ErrorNote error={error} />
-      {result && <ResultCard><Pre data={result} /></ResultCard>}
-    </Panel>
-  );
-}
 
 /* 2. Job Board (LinkedIn/Internshala style) */
 export function JobsModule() {
@@ -110,11 +77,33 @@ export function JdModule() {
 
 /* 4. Tailor */
 export function TailorModule() {
+  const { user } = useUser();
   const [resume, setResume] = useState("");
   const [jd, setJd] = useState("");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
+
+  // Load the user's saved master resume + email as the default source.
+  useEffect(() => {
+    const e = user?.primaryEmailAddress?.emailAddress || "";
+    if (!e) return;
+    let cancelled = false;
+    setEmail(e);
+    (async () => {
+      try {
+        const r = await api.resume.master.get(e);
+        if (!cancelled && r?.data?.text) setResume(r.data.text);
+      } catch {
+        /* no master resume yet — user uploads manually */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   async function run() {
     setLoading(true); setError(null);
     try { setResult(await api.resume.tailor(resume, jd)); }
@@ -123,9 +112,10 @@ export function TailorModule() {
   }
   return (
     <Panel index="04" eyebrow="Resume Tailoring" title="Tailor to the role, keep the facts">
-      <ResumeUpload label="Your resume" value={resume} onChange={setResume} />
+      <ResumeUpload label="Your resume (your saved resume is loaded automatically)" value={resume} onChange={setResume} />
       <Field label="Target job description"><textarea style={inputStyle} rows={5} value={jd} onChange={(e) => setJd(e.target.value)} placeholder="Paste the JD…" /></Field>
       <RunButton onClick={run} loading={loading} disabled={!resume || jd.length < 20}>Tailor resume</RunButton>
+      {email && resume && <p className="modal__hint">Using your saved resume for {email}.</p>}
       <ErrorNote error={error} />
       {result && <ResultCard><Pre data={result} /></ResultCard>}
     </Panel>
@@ -134,11 +124,31 @@ export function TailorModule() {
 
 /* 5. Cover Letter */
 export function CoverModule() {
+  const { user } = useUser();
   const [raw, setRaw] = useState("");
   const [jd, setJd] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [letter, setLetter] = useState("");
+
+  // Load the saved master resume as the default source.
+  useEffect(() => {
+    const e = user?.primaryEmailAddress?.emailAddress || "";
+    if (!e) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await api.resume.master.get(e);
+        if (!cancelled && r?.data?.text) setRaw(r.data.text);
+      } catch {
+        /* no master resume yet */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   async function run() {
     setLoading(true); setError(null);
     try {
@@ -149,7 +159,7 @@ export function CoverModule() {
   }
   return (
     <Panel index="05" eyebrow="Cover Letter" title="Generate a cover letter">
-      <ResumeUpload label="Resume" value={raw} onChange={setRaw} />
+      <ResumeUpload label="Resume (your saved resume is loaded automatically)" value={raw} onChange={setRaw} />
       <Field label="Job description"><textarea style={inputStyle} rows={4} value={jd} onChange={(e) => setJd(e.target.value)} /></Field>
       <RunButton onClick={run} loading={loading} disabled={!raw || !jd}>Write cover letter</RunButton>
       <ErrorNote error={error} />

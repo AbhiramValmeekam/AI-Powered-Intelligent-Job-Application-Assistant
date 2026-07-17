@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { useUser } from "@clerk/nextjs";
-import { profiles } from "@/lib/api";
+import { profiles, resume as resumeApi } from "@/lib/api";
+import { ResumeUpload } from "@/components/ResumeUpload";
 
 type Form = {
   fullName: string;
@@ -15,6 +16,7 @@ type Form = {
   goal: string; // career goal / preferred roles
   preferredLocations: string;
   salaryExpectation: string;
+  resume: string; // parsed resume text (master resume)
 };
 
 const empty: Form = {
@@ -27,6 +29,7 @@ const empty: Form = {
   goal: "",
   preferredLocations: "",
   salaryExpectation: "",
+  resume: "",
 };
 
 const TOTAL = 4;
@@ -141,6 +144,10 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         salaryExpectation: form.salaryExpectation.trim() || null,
       };
       await profiles.upsert(payload);
+      // Save the master resume (used for tailoring, auto-apply, etc.)
+      if (form.resume.trim()) {
+        await resumeApi.master.upsert(email, form.resume.trim());
+      }
       // animate out
       setClosing(true);
       const root = document.querySelector(".onboarding");
@@ -211,6 +218,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                 <span>Career goal / preferred roles</span>
                 <input style={inputStyle} value={form.goal} onChange={(e) => set("goal", e.target.value)} placeholder="Backend / AI engineer" />
               </label>
+              <ResumeUpload label="Upload your resume (used for tailoring & auto-apply)" value={form.resume} onChange={(t) => set("resume", t)} />
             </div>
           )}
 

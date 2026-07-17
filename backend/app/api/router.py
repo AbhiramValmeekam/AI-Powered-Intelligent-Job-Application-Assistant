@@ -7,6 +7,7 @@ login. The `userId` is accepted in bodies where needed; a real auth middleware
 """
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Form
 from fastapi.responses import JSONResponse
+from datetime import datetime
 
 from app.core.config import settings
 from app.core.deps import get_gemini
@@ -570,3 +571,37 @@ async def advisor_chat(body: AdvisorIn, gemini: GeminiClient = Depends(get_gemin
             profile_json = doc
     result = _run(lambda: engine.career_advice(profile_json, body.question, body.docs))
     return {"ok": True, "data": result}
+
+
+# ===================================================================== #
+# Master Resume (per-user, used as the default source for tailoring etc.)
+# ===================================================================== #
+@router.post("/resume/master")
+async def upsert_master_resume(body: dict):
+    from app.core.database import coll
+    email = (body.get("email") or "").strip()
+    text = (body.get("text") or "").strip()
+    if not email:
+        raise HTTPException(status_code=422, detail="email is required.")
+    if not text:
+        raise HTTPException(status_code=422, detail="Resume text is required.")
+    existing = await coll("masterresumes").find_one({"email": email})
+    if existing:
+        await coll("masterresumes").update_one(
+            {"_id": existing["_id"]}, {"$set": {"text": text, "updatedAt": datetime.utcnow()}})
+        return {"ok": True, "updated": True}
+    await coll("masterresumes").insert_one(
+        {"email": email, "text": text, "createdAt": datetime.utcnow(), "updatedAt": datetime.utcnow()})
+    return {"ok": True, "created": True}
+
+
+@router.get("/resume/master")
+async def get_master_resume(email: str):
+    from app.core.database import coll
+    if not email:
+        raise HTTPException(status_code=422, detail="email is required.")
+    doc = await coll("masterresumes").find_one({"email": email})
+    if not doc:
+        raise HTTPException(status_code=404, detail="No master resume found for this email.")
+    doc["_id"] = str(doc["_id"])
+    return {"ok": True, "data": {"email": doc["email"], "text": doc.get("text", "")}}

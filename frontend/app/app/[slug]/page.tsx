@@ -1,13 +1,12 @@
 import { notFound } from "next/navigation";
 import {
-  ProfileModule, JobsModule, AlertsModule, JdModule, TailorModule,
+  JobsModule, AlertsModule, JdModule, TailorModule,
   CoverModule, AtsModule, SkillsModule, ScamModule, CompanyModule,
   InterviewModule, TrackerModule, VersionsModule, AnalyticsModule,
   LearningModule, AdvisorModule,
 } from "@/lib/modules";
 
 const REGISTRY: Record<string, React.ComponentType> = {
-  profile: ProfileModule,
   jobs: JobsModule,
   alerts: AlertsModule,
   jd: JdModule,
