@@ -79,6 +79,11 @@ export const notifications = {
 
 // 4. Resume tailor
 export const resume = {
+  parse: (file: File) => {
+    const fd = new FormData();
+    fd.append("resume_file", file);
+    return request<any>("/api/resume/parse", { method: "POST", body: fd });
+  },
   tailor: (resumeText: string, jobDescription: string) => {
     const fd = new FormData();
     fd.append("resume_text", resumeText);

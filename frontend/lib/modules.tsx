@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Panel, Field, RunButton, ErrorNote, ResultCard, Pre, inputStyle } from "@/components/Panel";
 import * as api from "@/lib/api";
 import { JobBoard } from "@/components/JobBoard";
+import { ResumeUpload } from "@/components/ResumeUpload";
 
 /* 1. Profile */
 export function ProfileModule() {
@@ -122,7 +123,7 @@ export function TailorModule() {
   }
   return (
     <Panel index="04" eyebrow="Resume Tailoring" title="Tailor to the role, keep the facts">
-      <Field label="Your resume text"><textarea style={inputStyle} rows={6} value={resume} onChange={(e) => setResume(e.target.value)} placeholder="Paste your resume…" /></Field>
+      <ResumeUpload label="Your resume" value={resume} onChange={setResume} />
       <Field label="Target job description"><textarea style={inputStyle} rows={5} value={jd} onChange={(e) => setJd(e.target.value)} placeholder="Paste the JD…" /></Field>
       <RunButton onClick={run} loading={loading} disabled={!resume || jd.length < 20}>Tailor resume</RunButton>
       <ErrorNote error={error} />
@@ -148,7 +149,7 @@ export function CoverModule() {
   }
   return (
     <Panel index="05" eyebrow="Cover Letter" title="Generate a cover letter">
-      <Field label="Resume text"><textarea style={inputStyle} rows={5} value={raw} onChange={(e) => setRaw(e.target.value)} /></Field>
+      <ResumeUpload label="Resume" value={raw} onChange={setRaw} />
       <Field label="Job description"><textarea style={inputStyle} rows={4} value={jd} onChange={(e) => setJd(e.target.value)} /></Field>
       <RunButton onClick={run} loading={loading} disabled={!raw || !jd}>Write cover letter</RunButton>
       <ErrorNote error={error} />

@@ -216,6 +216,18 @@ async def list_notifications(email: str = None, unread_only: bool = False):
 # ===================================================================== #
 # 4 & 5. Resume Tailoring Engine + Cover Letter
 # ===================================================================== #
+@router.post("/resume/parse")
+async def parse_resume_endpoint(resume_file: UploadFile = File(...)):
+    """Upload a .pdf/.docx resume and get back parsed plain text.
+    Used by the frontend ResumeUpload component so users upload a file
+    instead of pasting resume text."""
+    try:
+        text = parse_resume(await resume_file.read(), resume_file.filename or "")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Could not parse resume: {e}")
+    return {"ok": True, "filename": resume_file.filename, "text": text}
+
+
 @router.post("/resume/tailor")
 async def tailor_resume(
     resume_file: UploadFile = File(None),

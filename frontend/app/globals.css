@@ -2807,3 +2807,50 @@
   line-height: 1.6;
   margin-bottom: 1.4rem;
 }
+
+/* ============================================================
+   ResumeUpload — file button + parsed-text area
+   ============================================================ */
+.resume-upload {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.resume-upload__row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.resume-upload__btn {
+  border: 1px solid #6ee7b7;
+  background: rgba(110, 231, 183, 0.12);
+  color: #6ee7b7;
+  font-weight: 600;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.15s;
+}
+.resume-upload__btn:hover:not(:disabled) {
+  background: rgba(110, 231, 183, 0.22);
+}
+.resume-upload__btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.resume-upload__name {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+.resume-upload__err {
+  color: #ffb4ab;
+  font-size: 0.82rem;
+  margin: 0;
+}
+.resume-upload__hint {
+  font-size: 0.76rem;
+  opacity: 0.55;
+  margin: 0;
+}
