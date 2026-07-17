@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MODULES, ModuleDef } from "@/lib/nav";
+import { AppAuth } from "@/components/AppAuth";
 
 export function AppNav() {
   const pathname = usePathname();
@@ -31,6 +32,7 @@ export function AppNav() {
           );
         })}
       </nav>
+      <AppAuth />
     </aside>
   );
 }

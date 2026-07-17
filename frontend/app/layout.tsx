@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 const themeBootScript = `
@@ -55,7 +56,8 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-  return (
+  const clerkEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const tree = (
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
@@ -68,4 +70,5 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       </body>
     </html>
   );
+  return clerkEnabled ? <ClerkProvider afterSignOutUrl="/">{tree}</ClerkProvider> : tree;
 }
