@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Panel, Field, RunButton, ErrorNote, inputStyle } from "@/components/Panel";
 import * as api from "@/lib/api";
 import { parseSections } from "@/lib/describe";
@@ -178,6 +179,8 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [submitErr, setSubmitErr] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   async function loadProfile() {
     if (!email) return;
@@ -214,7 +217,7 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
   const desc = stripHtml(job.description);
   const sections = parseSections(job.description);
 
-  return (
+  return mounted ? createPortal(
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <button className="modal__close" onClick={onClose} aria-label="Close">✕</button>
@@ -303,6 +306,7 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
           </>
         )}
       </div>
-    </div>
-  );
+    </div>,
+    document.body,
+  ) : null;
 }
