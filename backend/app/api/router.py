@@ -252,7 +252,9 @@ async def tailor_resume(
     result = _run(fn)
     from app.core.database import coll
     try:
-        await coll("resumeversions").insert_one(result)
+        # Insert a copy so Mongo's injected ObjectId _id never leaks into the
+        # JSON response (ObjectId is not serializable -> 500).
+        await coll("resumeversions").insert_one(dict(result))
     except Exception:
         pass
     return {"ok": True, "data": result}
