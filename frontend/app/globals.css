@@ -3036,3 +3036,26 @@
 @media (prefers-reduced-motion: reduce) {
   .primary-cta, .primary-cta::after, .cc-card, .field input { transition: none; }
 }
+
+/* ---- Auto-Apply result (job modal) ---- */
+.modal__auto {
+  margin: 0.9rem 0 0.4rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(120, 220, 170, 0.28);
+  border-radius: 12px;
+  background: rgba(60, 200, 150, 0.06);
+}
+.modal__auto-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+.modal__auto-changes {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.86rem;
+  opacity: 0.85;
+}
+.modal__auto-changes li { margin: 0.15rem 0; }

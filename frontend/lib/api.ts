@@ -149,6 +149,11 @@ export const applications = {
     method: "POST",
     body: JSON.stringify(payload),
   }),
+  autoApply: (payload: { email: string; job: any; resumeText?: string }) =>
+    request<any>("/api/applications/auto-apply", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   list: (email?: string, status?: string) => {
     const params = new URLSearchParams();
     if (email) params.set("email", email);

@@ -366,6 +366,124 @@ async def add_application(body: dict):
     return {"ok": True, "id": str(res.inserted_id)}
 
 
+def _profile_to_resume_text(p: dict) -> str:
+    """Flatten a stored master profile into raw resume text for tailoring."""
+    lines = []
+    if p.get("fullName"): lines.append(p["fullName"])
+    contact = " | ".join(filter(None, [p.get("email"), p.get("phone"), p.get("location")]))
+    if contact: lines.append(contact)
+    links = p.get("links") or {}
+    if links: lines.append(" | ".join(f"{k}: {v}" for k, v in links.items() if v))
+    if p.get("careerPreferences", {}).get("goal"):
+        lines += ["", "SUMMARY", p["careerPreferences"]["goal"]]
+    if p.get("skills"):
+        lines += ["", "SKILLS", ", ".join(map(str, p["skills"]))]
+    if p.get("experience"):
+        lines += ["", "EXPERIENCE"]
+        for e in p["experience"]:
+            if isinstance(e, dict):
+                hdr = " — ".join(filter(None, [e.get("title"), e.get("company"), e.get("dates")]))
+                lines.append(hdr or str(e))
+                for b in (e.get("bullets") or []): lines.append(f"- {b}")
+            else:
+                lines.append(str(e))
+    if p.get("projects"):
+        lines += ["", "PROJECTS"]
+        for pr in p["projects"]:
+            if isinstance(pr, dict):
+                lines.append(pr.get("name", ""))
+                for b in (pr.get("bullets") or []): lines.append(f"- {b}")
+            else:
+                lines.append(str(pr))
+    if p.get("education"):
+        lines += ["", "EDUCATION"]
+        for ed in p["education"]:
+            if isinstance(ed, dict):
+                lines.append(" — ".join(filter(None, [ed.get("degree"), ed.get("institution"), ed.get("dates")])))
+            else:
+                lines.append(str(ed))
+    if p.get("certifications"):
+        lines += ["", "CERTIFICATIONS", ", ".join(map(str, p["certifications"]))]
+    return "\n".join(lines).strip()
+
+
+@router.post("/applications/auto-apply")
+async def auto_apply(body: dict, gemini: GeminiClient = Depends(get_gemini)):
+    """One-click auto-apply: load profile -> tailor resume to the job's JD ->
+    save resume version -> submit the application with tailored artifacts.
+
+    Degrades gracefully: if Gemini is rate-limited/unavailable, the application
+    is still submitted (untailored) and the response flags tailored=False so the
+    UI can tell the user tailoring was skipped.
+    """
+    from app.core.database import coll
+
+    email = (body.get("email") or body.get("candidateEmail") or "").strip()
+    job = body.get("job") or {}
+    if not email:
+        raise HTTPException(status_code=422, detail="email is required to auto-apply.")
+    if not job.get("title"):
+        raise HTTPException(status_code=422, detail="job (with at least a title) is required.")
+
+    jd = (job.get("description") or "").strip()
+    resume_text = (body.get("resumeText") or "").strip()
+    profile = await coll("profiles").find_one({"email": email})
+    if not resume_text and profile:
+        resume_text = _profile_to_resume_text(profile)
+
+    tailored = None
+    tailor_error = None
+    if resume_text and len(jd) >= 20:
+        try:
+            engine = ResumeEngine(gemini)
+            tailored = engine.tailor_resume(resume_text, jd)
+            tailored["candidateEmail"] = email
+            tailored["jobTitle"] = job.get("title")
+            tailored["company"] = job.get("company")
+            try:
+                await coll("resumeversions").insert_one(dict(tailored))
+            except Exception:
+                pass
+        except QuotaError as e:
+            tailor_error = f"Resume tailoring skipped (Gemini quota): {e}"
+        except Exception as e:
+            tailor_error = f"Resume tailoring skipped: {type(e).__name__}"
+    elif not resume_text:
+        tailor_error = "No resume/profile found for this email — applied without tailoring."
+    elif len(jd) < 20:
+        tailor_error = "Job has too little description to tailor — applied as-is."
+
+    application = {
+        "candidateEmail": email,
+        "company": job.get("company"),
+        "role": job.get("title"),
+        "status": "Applied",
+        "jobUrl": job.get("url"),
+        "source": job.get("source"),
+        "autoApplied": True,
+        "tailored": tailored is not None,
+        "atsScore": (tailored or {}).get("atsScore"),
+        "tailoredSummary": (tailored or {}).get("summary"),
+        "coverLetter": (tailored or {}).get("coverLetter"),
+        "missingSkills": (tailored or {}).get("missingSkills", []),
+    }
+    res = await coll("applications").insert_one({k: v for k, v in application.items() if v is not None})
+
+    return {
+        "ok": True,
+        "id": str(res.inserted_id),
+        "data": {
+            "tailored": tailored is not None,
+            "atsScore": (tailored or {}).get("atsScore"),
+            "summary": (tailored or {}).get("summary"),
+            "changes": (tailored or {}).get("changes", []),
+            "missingSkills": (tailored or {}).get("missingSkills", []),
+            "coverLetter": (tailored or {}).get("coverLetter"),
+            "note": tailor_error,
+        },
+    }
+
+
 @router.get("/applications")
 async def list_applications(email: str = None, status: str = None):
     from app.core.database import coll

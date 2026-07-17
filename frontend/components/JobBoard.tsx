@@ -179,6 +179,8 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [autoBusy, setAutoBusy] = useState(false);
+  const [autoResult, setAutoResult] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
   const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [modalRef, setModalRef] = useState<HTMLDivElement | null>(null);
@@ -264,6 +266,17 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
     finally { setSubmitting(false); }
   }
 
+  async function autoApply() {
+    if (!email) { setSubmitErr("Enter your email so we can tailor & apply."); return; }
+    setAutoBusy(true); setSubmitErr(null); setAutoResult(null);
+    try {
+      const r = await api.applications.autoApply({ email, job });
+      setAutoResult(r);
+      setDone(true);
+    } catch (e: any) { setSubmitErr(e.message); }
+    finally { setAutoBusy(false); }
+  }
+
   const desc = stripHtml(job.description);
   const sections = parseSections(job.description);
 
@@ -274,8 +287,32 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
 
         {done ? (
           <div className="modal__done">
-            <h3>Application tracked ✅</h3>
+            <h3>{autoResult ? "Auto-applied ✅" : "Application tracked ✅"}</h3>
             <p>Your application to <strong>{job.company}</strong> for <strong>{job.title}</strong> is saved in your Application Tracker (status: Applied).</p>
+            {autoResult && (
+              <div className="modal__auto">
+                {autoResult.data?.tailored ? (
+                  <>
+                    <p className="modal__auto-badge">⚡ Resume auto-tailored to this job
+                      {typeof autoResult.data?.atsScore === "number" && <span className="chip chip--match"> ATS {autoResult.data.atsScore}</span>}
+                    </p>
+                    {autoResult.data?.summary && (
+                      <p className="modal__hint"><strong>Tailored summary:</strong> {autoResult.data.summary}</p>
+                    )}
+                    {autoResult.data?.changes?.length > 0 && (
+                      <ul className="modal__auto-changes">
+                        {autoResult.data.changes.slice(0, 5).map((c: string, i: number) => <li key={i}>{c}</li>)}
+                      </ul>
+                    )}
+                    {autoResult.data?.missingSkills?.length > 0 && (
+                      <p className="modal__hint modal__hint--warn">Honest gaps: {autoResult.data.missingSkills.join(", ")}</p>
+                    )}
+                  </>
+                ) : (
+                  <p className="modal__hint modal__hint--warn">{autoResult.data?.note || "Applied without tailoring."}</p>
+                )}
+              </div>
+            )}
             <button className="primary-cta" onClick={onClose}><span>Done</span><span aria-hidden>↗</span></button>
           </div>
         ) : (
@@ -344,13 +381,17 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
 
             <div className="modal__actions">
               <button className="modal__secondary" onClick={onClose}>Cancel</button>
-              <button className="primary-cta" onClick={submit} disabled={submitting || !email}>
-                <span>{submitting ? "Saving…" : "Submit application"}</span>
+              <button className="modal__secondary" onClick={submit} disabled={submitting || autoBusy || !email}>
+                {submitting ? "Saving…" : "Track only"}
+              </button>
+              <button className="primary-cta" onClick={autoApply} disabled={autoBusy || submitting || !email}>
+                <span>{autoBusy ? "Tailoring & applying…" : "⚡ Auto-Apply (tailor + submit)"}</span>
                 <span aria-hidden>↗</span>
               </button>
             </div>
             <p className="modal__fineprint">
-              Applied within CareerOS — saved to your Application Tracker. No redirect to the source site.
+              Auto-Apply tailors your resume to this job with AI, then files the application in your tracker.
+              Track only saves it without tailoring. No redirect to the source site.
               {job.url && <a href={job.url} target="_blank" rel="noreferrer" className="modal__srclink">View original posting ↗</a>}
             </p>
           </>
