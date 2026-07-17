@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Panel, Field, RunButton, ErrorNote, inputStyle } from "@/components/Panel";
+import { StatusButton } from "@/components/StatusButton";
 import * as api from "@/lib/api";
 import { parseSections } from "@/lib/describe";
 import { stopScroll, startScroll } from "@/lib/smoothScroll";
@@ -384,10 +385,15 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
               <button className="modal__secondary" onClick={submit} disabled={submitting || autoBusy || !email}>
                 {submitting ? "Saving…" : "Track only"}
               </button>
-              <button className="primary-cta" onClick={autoApply} disabled={autoBusy || submitting || !email}>
-                <span>{autoBusy ? "Tailoring & applying…" : "⚡ Auto-Apply (tailor + submit)"}</span>
-                <span aria-hidden>↗</span>
-              </button>
+              <StatusButton
+                idleLabel="⚡ Auto-Apply (tailor + submit)"
+                loadingLabel="Tailoring & applying…"
+                successLabel="Applied"
+                loading={autoBusy}
+                done={autoResult ? autoResult.applied ?? autoResult.autoApplied ?? null : undefined}
+                onClick={autoApply}
+                disabled={!email}
+              />
             </div>
             <p className="modal__fineprint">
               Auto-Apply tailors your resume to this job with AI, then files the application in your tracker.

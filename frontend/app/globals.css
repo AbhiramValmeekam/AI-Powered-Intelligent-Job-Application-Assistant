@@ -3553,3 +3553,72 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
   .dash .panel { transition: none; }
   .dash .panel:hover, .dash .panel:focus-within { transform: none; }
 }
+
+/* ==================================================================== */
+/* StatusButton — animated idle / loading / success (CareerOS tokens)  */
+/* Equivalent of uselayouts "status-button" without Tailwind/motion.   */
+/* ==================================================================== */
+.status-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 1.15rem;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #0e1211;
+  background: linear-gradient(135deg, var(--signal), color-mix(in srgb, var(--signal) 70%, #000));
+  box-shadow: 0 10px 30px -14px color-mix(in srgb, var(--signal) 80%, transparent);
+  transition: transform 0.18s ease, opacity 0.18s ease, background 0.28s ease, box-shadow 0.28s ease;
+}
+.status-btn:hover { transform: translateY(-1px); }
+.status-btn:active { transform: translateY(0); }
+.status-btn:disabled { cursor: progress; opacity: 0.85; }
+.status-btn:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+
+/* Loading: muted signal */
+.status-btn--loading {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--signal) 80%, #555), color-mix(in srgb, var(--signal) 55%, #333));
+}
+/* Success: forest */
+.status-btn--success {
+  background: linear-gradient(135deg, var(--forest), color-mix(in srgb, var(--forest) 65%, #000));
+  box-shadow: 0 10px 30px -14px color-mix(in srgb, var(--forest) 80%, transparent);
+}
+
+.status-btn__label { display: inline-flex; }
+.status-btn__char {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(6px);
+  animation: status-char-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes status-char-in { to { opacity: 1; transform: none; } }
+
+.status-btn__indicator { display: inline-flex; align-items: center; }
+
+/* Spinner */
+.status-btn__spinner { animation: status-spin 0.8s linear infinite; }
+.status-btn__spinner-track { fill: none; stroke: rgba(14,18,17,0.25); stroke-width: 3; }
+.status-btn__spinner-head { fill: none; stroke: #0e1211; stroke-width: 3; stroke-linecap: round; }
+@keyframes status-spin { to { transform: rotate(360deg); } }
+
+/* Check */
+.status-btn__check { stroke: #0e1211; stroke-width: 2.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.status-btn__check-path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: status-check 0.4s cubic-bezier(0.65, 0, 0.35, 1) 0.05s forwards;
+}
+@keyframes status-check { to { stroke-dashoffset: 0; } }
+
+/* Reduced motion: no char stagger / spin / draw */
+@media (prefers-reduced-motion: reduce) {
+  .status-btn__char { animation: none; opacity: 1; transform: none; }
+  .status-btn__spinner { animation: none; }
+  .status-btn__check-path { animation: none; stroke-dashoffset: 0; }
+}

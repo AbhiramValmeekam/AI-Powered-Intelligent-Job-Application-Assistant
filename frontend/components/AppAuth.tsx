@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { profiles, resume as resumeApi } from "@/lib/api";
 import { ResumeUpload } from "@/components/ResumeUpload";
+import { StatusButton } from "@/components/StatusButton";
 
 const clerkEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -201,16 +202,14 @@ export function EditProfileModal({ email, onClose }: { email: string; onClose: (
           <button className="modal__secondary" onClick={onClose}>
             Close
           </button>
-          {!done && !loading && (
-            <button
-              className="primary-cta"
-              onClick={save}
-              disabled={saving}
-            >
-              <span>{saving ? "Saving…" : "Save changes"}</span>
-              <span aria-hidden>↗</span>
-            </button>
-          )}
+          <StatusButton
+            idleLabel="Save changes"
+            loadingLabel="Saving…"
+            successLabel="Saved"
+            loading={saving}
+            done={done}
+            onClick={save}
+          />
         </div>
       </div>
     </div>,

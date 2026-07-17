@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { StatusButton } from "@/components/StatusButton";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE?.replace(/\/$/, "") || "http://localhost:8000";
@@ -105,20 +106,14 @@ export default function GetStartedPage() {
           />
         </Field>
 
-        <button
+        <StatusButton
           type="submit"
-          disabled={loading || !resumeText || jobDescription.length < 20}
-          className="primary-cta"
-          style={{
-            justifySelf: "start",
-            padding: "0.85rem 1.5rem",
-            opacity: loading ? 0.6 : 1,
-            cursor: "pointer",
-          }}
-        >
-          <span>{loading ? "Working…" : "Tailor my resume"}</span>
-          <span aria-hidden="true">↗</span>
-        </button>
+          idleLabel="Tailor my resume"
+          loadingLabel="Working…"
+          successLabel="Done"
+          loading={loading}
+          disabled={!resumeText || jobDescription.length < 20}
+        />
       </form>
 
       {error && (

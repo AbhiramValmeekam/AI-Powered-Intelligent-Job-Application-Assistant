@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { StatusButton } from "@/components/StatusButton";
 
 /**
  * Cinematic UI primitives that share the landing page's visual language:
@@ -67,23 +68,25 @@ export function RunButton({
   loading,
   disabled,
   children,
+  done,
 }: {
   onClick: () => void;
   loading: boolean;
   disabled?: boolean;
   children: ReactNode;
+  done?: boolean | null;
 }) {
   return (
-    <button
-      type="button"
-      className="primary-cta panel__run"
+    <StatusButton
+      idleLabel={String(children ?? "")}
+      loadingLabel="Working…"
+      successLabel="Done"
+      loading={loading}
+      done={done}
+      disabled={disabled}
       onClick={onClick}
-      disabled={loading || disabled}
-      style={{ opacity: loading || disabled ? 0.55 : 1, cursor: "pointer" }}
-    >
-      <span>{loading ? "Working…" : children}</span>
-      <span aria-hidden="true">↗</span>
-    </button>
+      className="panel__run"
+    />
   );
 }
 
