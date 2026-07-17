@@ -12,6 +12,7 @@ import {
   AtsModule, SkillsModule, ScamModule, CompanyModule, InterviewModule,
   TrackerModule, VersionsModule, AnalyticsModule, LearningModule, AdvisorModule,
 } from "@/lib/modules";
+import { JobBoard } from "@/components/JobBoard";
 import { EditProfileModal } from "@/components/AppAuth";
 import { stopScroll, startScroll } from "@/lib/smoothScroll";
 
@@ -91,6 +92,9 @@ export function DashboardV2() {
   };
 
   const ActiveMod = active && !NAV.find((n) => n.id === active) ? MODULE_BY_ID[active] : null;
+  // When the Job Workflow portal opens, carry the dashboard's current
+  // search so the tab continues exactly where "All discovered jobs" left off.
+  const openJobs = () => openModule("jobs");
 
   return (
     <div className="db3" data-app-motion>
@@ -184,7 +188,7 @@ export function DashboardV2() {
                   <p className="db3__eyebrow">LIVE DISCOVERY</p>
                   <h2 className="db3__h2">Search jobs</h2>
                 </div>
-                <button className="db3__link" onClick={() => openModule("jobs")}>All discovered jobs <IconArrow /></button>
+                <button className="db3__link" onClick={openJobs}>All discovered jobs <IconArrow /></button>
               </div>
 
               <div className="db3__jobsearch">
@@ -235,7 +239,13 @@ export function DashboardV2() {
             <div className="db3__portal__bar">
               <button className="db3__back" onClick={closeModule}>← Back to dashboard</button>
             </div>
-            <div className="db3__portal__body"><ActiveMod /></div>
+            <div className="db3__portal__body">
+              {active === "jobs" ? (
+                <JobBoard initialQuery={query} initialLocation={location} />
+              ) : (
+                <ActiveMod />
+              )}
+            </div>
           </div>
         )}
       </main>

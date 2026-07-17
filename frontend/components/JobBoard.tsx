@@ -40,9 +40,9 @@ function stripHtml(s: string) {
   return (s || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-export function JobBoard() {
-  const [query, setQuery] = useState("python developer");
-  const [location, setLocation] = useState("");
+export function JobBoard({ initialQuery, initialLocation }: { initialQuery?: string; initialLocation?: string }) {
+  const [query, setQuery] = useState(initialQuery || "python developer");
+  const [location, setLocation] = useState(initialLocation || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
