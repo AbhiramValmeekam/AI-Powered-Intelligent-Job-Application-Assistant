@@ -2913,3 +2913,88 @@
   margin: 0.5rem 0;
   line-height: 1.5;
 }
+
+/* ============================================================
+   AppMotion — cinematic interior (matches landing quality)
+   GSAP handles reveal via .from(); these are CSS micro-interactions.
+   ============================================================ */
+.app-main { position: relative; }
+
+/* soft entrance fallback if JS is slow (GSAP overrides immediately) */
+[data-app-motion] .panel {
+  will-change: transform, opacity;
+}
+
+/* animated accent rule on panel headers */
+.panel__head { position: relative; }
+.panel__eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #6ee7b7;
+  opacity: 0.85;
+}
+.section-label {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 0.74rem;
+  letter-spacing: 0.16em;
+  opacity: 0.5;
+  margin: 0.1rem 0 0.5rem;
+}
+
+/* focus glow on inputs/buttons — premium feel */
+.field__label {
+  display: block;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  margin-bottom: 0.4rem;
+}
+.field input, .field textarea, .field select,
+.jobbar__search, .jobbar__loc, .jobfilters input, .jobfilters select {
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.field input:focus, .field textarea:focus, .field select:focus,
+.jobbar__search:focus, .jobbar__loc:focus, .jobfilters input:focus, .jobfilters select:focus {
+  outline: none;
+  border-color: rgba(110, 231, 183, 0.55);
+  box-shadow: 0 0 0 3px rgba(110, 231, 183, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* primary CTA hover lift + sheen */
+.primary-cta {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+.primary-cta:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px -12px rgba(110, 231, 183, 0.5);
+}
+.primary-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.18) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.6s ease;
+}
+.primary-cta:hover:not(:disabled)::after { transform: translateX(120%); }
+
+/* nav item active accent slide */
+.app-nav__item { position: relative; }
+.app-nav__item.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 18%;
+  width: 3px; height: 64%;
+  border-radius: 3px;
+  background: #6ee7b7;
+  box-shadow: 0 0 12px rgba(110, 231, 183, 0.6);
+}
+
+/* reduced motion: kill transitions that could annoy */
+@media (prefers-reduced-motion: reduce) {
+  .primary-cta, .primary-cta::after, .cc-card, .field input { transition: none; }
+}
