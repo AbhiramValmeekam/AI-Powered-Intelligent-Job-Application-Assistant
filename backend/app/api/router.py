@@ -283,11 +283,12 @@ async def missing_skills(body: AnalyzeAtsIn, gemini: GeminiClient = Depends(get_
 async def scam_check(body: ScamCheckIn):
     try:
         from app.engines.scamshield import ScamShieldEngine
+        from app.engines.scamshield import engine as _engine_mod
     except Exception as e:
         raise HTTPException(
             status_code=503,
             detail=f"Scam Shield engine not available: {str(e)[:200]}. "
-                   f"It loads trained models from C:/Users/ABHIRAM/JobShieldAI/saved_models.",
+            f"It loads trained models from {getattr(_engine_mod, 'DEFAULT_MODEL_DIR', 'JOBSHIELD_MODEL_DIR')}.",
         )
     try:
         engine = ScamShieldEngine()
