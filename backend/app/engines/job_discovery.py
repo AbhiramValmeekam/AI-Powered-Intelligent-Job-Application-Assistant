@@ -231,6 +231,13 @@ def search_jobs(query: str, location: str = "", category: str = "",
         except JobDiscoveryError as e:
             errors.append(str(e))
 
+    # Surface config notices so the UI can show which extra sources are
+    # pending a key (instead of silently hiding them).
+    if include_adzuna and not (adzuna_app_id and adzuna_app_key):
+        errors.append("Adzuna not enabled — add ADZUNA_APP_ID + ADZUNA_APP_KEY to backend/.env (free at developer.adzuna.com).")
+    if include_jobdataapi and not jobdataapi_key:
+        errors.append("jobdataapi not enabled — add JOBDATAAPI_KEY + set JOBDATAAPI_ENABLED=true in backend/.env (free tier at jobdataapi.com).")
+
     # Filter to query-relevant jobs (so "python" -> python jobs).
     filtered = _relevant(all_jobs, query) if query else all_jobs
 

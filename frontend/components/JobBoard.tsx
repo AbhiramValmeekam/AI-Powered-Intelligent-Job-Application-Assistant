@@ -44,6 +44,7 @@ export function JobBoard() {
   const [error, setError] = useState<string | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [sources, setSources] = useState<Record<string, number>>({});
+  const [srcErrors, setSrcErrors] = useState<string[]>([]);
 
   const [kw, setKw] = useState("");
   const [srcFilter, setSrcFilter] = useState("all");
@@ -57,6 +58,7 @@ export function JobBoard() {
       const r = await api.jobs.search(query, { location, useAdzuna: true, useJobdataapi: true });
       setJobs(r.jobs || []);
       setSources(r.sources || {});
+      setSrcErrors(r.errors || []);
     } catch (e: any) { setError(e.message); }
     finally { setLoading(false); }
   }
@@ -93,6 +95,18 @@ export function JobBoard() {
           onKeyDown={(e) => e.key === "Enter" && search()} />
         <RunButton onClick={search} loading={loading} disabled={!query}>Search</RunButton>
       </div>
+
+      <div className="jobboard__sources">
+        <span className="jobboard__sources-label">Sources:</span>
+        <span className={"src-chip" + (sources.remotive ? " src-chip--on" : "")}>Remotive {sources.remotive ? `(${sources.remotive})` : "✓"}</span>
+        <span className={"src-chip" + (sources.adzuna ? " src-chip--on" : "")}>Adzuna {sources.adzuna ? `(${sources.adzuna})` : "⚙"}</span>
+        <span className={"src-chip" + (sources.jobdataapi ? " src-chip--on" : "")}>jobdataapi {sources.jobdataapi ? `(${sources.jobdataapi})` : "⚙"}</span>
+      </div>
+      {srcErrors.length > 0 && (
+        <div className="jobboard__srcnote">
+          {srcErrors.map((e, i) => <div key={i}>⚙ {e}</div>)}
+        </div>
+      )}
 
       {jobs.length > 0 && (
         <div className="jobfilters">
