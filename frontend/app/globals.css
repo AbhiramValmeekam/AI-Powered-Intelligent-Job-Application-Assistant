@@ -3092,3 +3092,121 @@
   text-decoration: none;
 }
 .app-nav__auth-link:hover { background: rgba(60, 200, 150, 0.12); }
+
+/* ---- Onboarding wizard (Unstop-style, GSAP) ---- */
+.onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(6, 9, 8, 0.72);
+  backdrop-filter: blur(8px);
+}
+.onboarding__card {
+  width: min(560px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(20, 26, 24, 0.96), rgba(12, 16, 15, 0.98));
+  border: 1px solid rgba(120, 220, 170, 0.18);
+  border-radius: 20px;
+  padding: 1.8rem 1.9rem 1.5rem;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+.onboarding__progress {
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-bottom: 1.3rem;
+}
+.onboarding__progress-bar {
+  height: 100%;
+  width: 25%;
+  background: linear-gradient(90deg, #6ee7b7, #34d399);
+  border-radius: 99px;
+}
+.onboarding__eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+.onboarding__title {
+  margin: 0.35rem 0 0.4rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.onboarding__sub {
+  margin: 0 0 1.2rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  opacity: 0.78;
+}
+.onboarding__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+.onboarding__fields .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  opacity: 0.92;
+}
+.onboarding__fields textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+.onboarding__hint {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  line-height: 1.5;
+}
+.onboarding__error {
+  margin-top: 1rem;
+  color: #fca5a5;
+  font-size: 0.85rem;
+}
+.onboarding__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  gap: 1rem;
+}
+.onboarding__nav {
+  display: flex;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+.onboarding__skip,
+.onboarding__back {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: inherit;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+}
+.onboarding__skip:hover,
+.onboarding__back:hover { background: rgba(255, 255, 255, 0.06); }
+.onboarding__dots {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-top: 1.2rem;
+}
+.onboarding__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.18);
+  transition: all 0.3s ease;
+}
+.onboarding__dot.is-active { background: #6ee7b7; width: 22px; }
+.onboarding__dot.is-done { background: rgba(110, 231, 183, 0.5); }
