@@ -1,0 +1,15 @@
+# ScamShieldEngine - runtime dependencies
+# (JobShieldAI reference project's trained artifacts + feature code are loaded
+#  from C:\Users\ABHIRAM\JobShieldAI at runtime; they are NOT copied.)
+joblib>=1.3
+scikit-learn>=1.3
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+lightgbm>=4.0
+xgboost>=2.0
+# Optional: company-reputation online checks (WHOIS / HTTP). Offline heuristics
+# work without these.
+# python-whois>=0.9
+# tldextract>=5.1
+# requests>=2.31
