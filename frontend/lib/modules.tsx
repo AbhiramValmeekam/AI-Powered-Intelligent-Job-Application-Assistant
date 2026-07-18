@@ -8,7 +8,33 @@ import { JobBoard } from "@/components/JobBoard";
 import { ResumeUpload } from "@/components/ResumeUpload";
 
 /* Renders an engine result object as structured, readable sections instead of
-   dumping raw JSON. Falls back to <Pre> when the shape isn't recognized. */
+   dumping raw JSON. Handles two known shapes:
+   - Interview: { technical[], behavioral[], companySpecific[], systemDesign[] } (string items)
+   - Learning:  { courses[], books[], projects[], openSource[], certifications[], roadmap[] }
+                (object items with name/provider/author/url/description)
+   Falls back to <Pre> when the shape isn't recognized. */
+function ResourceItem({ item }: { item: any }) {
+  if (item == null) return null;
+  if (typeof item !== "object") return <>{String(item)}</>;
+  const name = item.name ?? item.title ?? "";
+  const sub = item.provider ?? item.author ?? item.organization ?? item.level ?? "";
+  const url = item.url ?? item.link ?? "";
+  const desc = item.description ?? item.detail ?? "";
+  return (
+    <div style={{ marginBottom: "0.5rem" }}>
+      <div style={{ fontWeight: 600, lineHeight: 1.4 }}>
+        {url ? (
+          <a href={url} target="_blank" rel="noreferrer" style={{ color: "inherit", textDecoration: "underline", textUnderlineOffset: 2 }}>{name || url}</a>
+        ) : (
+          name
+        )}
+        {sub && <span style={{ fontWeight: 400, opacity: 0.7 }}> · {sub}</span>}
+      </div>
+      {desc && <div style={{ opacity: 0.72, fontSize: "0.86em", marginTop: 2, lineHeight: 1.45 }}>{desc}</div>}
+    </div>
+  );
+}
+
 function Section({ title, items }: { title: string; items: any }) {
   const list = Array.isArray(items)
     ? items
@@ -18,16 +44,21 @@ function Section({ title, items }: { title: string; items: any }) {
         ? []
         : [items];
   if (list.length === 0) return null;
+  const isResource = typeof list[0] === "object" && list[0] !== null && ("name" in list[0] || "title" in list[0] || "url" in list[0] || "description" in list[0]);
   return (
     <div style={{ marginBottom: "1.1rem" }}>
       <h4 style={{ margin: "0 0 0.5rem", fontSize: "0.82rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--signal, #6ee7b7)", opacity: 0.9 }}>{title}</h4>
-      <ol style={{ margin: 0, paddingLeft: "1.2rem", display: "grid", gap: "0.45rem" }}>
-        {list.map((it: any, i: number) => (
-          <li key={i} style={{ lineHeight: 1.5 }}>
-            {typeof it === "object" && it !== null ? JSON.stringify(it) : String(it)}
-          </li>
-        ))}
-      </ol>
+      {isResource ? (
+        <div style={{ display: "grid", gap: "0.6rem" }}>
+          {list.map((it: any, i: number) => <ResourceItem key={i} item={it} />)}
+        </div>
+      ) : (
+        <ol style={{ margin: 0, paddingLeft: "1.2rem", display: "grid", gap: "0.45rem" }}>
+          {list.map((it: any, i: number) => (
+            <li key={i} style={{ lineHeight: 1.5 }}>{typeof it === "object" && it !== null ? JSON.stringify(it) : String(it)}</li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }
