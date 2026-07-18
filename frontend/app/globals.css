@@ -3392,6 +3392,28 @@ html[data-theme="light"] .dash .result-card {
   color: #f4f2ea;
 }
 
+/* Result <pre>: the data was overflowing to the right because <pre> does not
+   wrap by default. Force wrapping + horizontal scroll so long JSON/lines stay
+   inside the card instead of spilling off the right edge. */
+.dash .result-pre,
+.result-pre {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.05);
+  white-space: pre-wrap;        /* wrap long lines */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  overflow-x: auto;             /* last-resort scroll for unbreakable tokens */
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+html[data-theme="light"] .result-pre {
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .dash .panel {
   padding: 2rem 1.9rem;
   transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s ease;

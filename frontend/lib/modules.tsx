@@ -212,9 +212,15 @@ export function SkillsModule() {
     finally { setLoading(false); }
   }
   return (
-    <Panel index="07" eyebrow="Missing Skills" title="Find the gaps">
+    <Panel index="07" eyebrow="Job Matcher" title="Find the gaps">
+      <ResumeUpload
+        label="Upload resume (PDF/DOCX) — or paste below"
+        value={tailored}
+        onChange={setTailored}
+        placeholder="pasted resume text"
+      />
       <Field label="Tailored resume (JSON or text)"><textarea style={inputStyle} rows={4} value={tailored} onChange={(e) => setTailored(e.target.value)} /></Field>
-      <Field label="Job JSON"><textarea style={inputStyle} rows={4} value={jdJson} onChange={(e) => setJdJson(e.target.value)} /></Field>
+      <Field label="Job JSON"><textarea style={inputStyle} rows={4} value={jdJson} onChange={(e) => setJdJson(e.target.value)} placeholder='{"requiredSkills":["python","java"]}' /></Field>
       <RunButton onClick={run} loading={loading} disabled={!tailored || !jdJson}>Analyze gaps</RunButton>
       <ErrorNote error={error} />
       {result && <ResultCard><Pre data={result} /></ResultCard>}
@@ -291,16 +297,23 @@ export function CompanyModule() {
 /* 10. Interview */
 export function InterviewModule() {
   const [company, setCompany] = useState("");
-  const [jobJson, setJobJson] = useState('{"requiredSkills":["python"],"technologies":["flask"]}');
+  const [jobText, setJobText] = useState("");
   const [q, setQ] = useState("");
   const [a, setA] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<any>(null);
   const [feedback, setFeedback] = useState<any>(null);
+  // Backend expects jobJson as a JSON dict; we let the user paste plain text
+  // and wrap it into a structure the engine understands (no JSON typing needed).
+  function jobJsonForApi(): any {
+    const t = jobText.trim();
+    if (!t) return {};
+    try { return JSON.parse(t); } catch { return { description: t }; }
+  }
   async function gen() {
     setLoading(true); setError(null);
-    try { setQuestions(await api.intelligence.interviewQuestions({ jobJson: safeJson(jobJson, "jobJson"), company })); }
+    try { setQuestions(await api.intelligence.interviewQuestions({ jobJson: jobJsonForApi(), company })); }
     catch (e: any) { setError(e.message); }
     finally { setLoading(false); }
   }
@@ -313,8 +326,8 @@ export function InterviewModule() {
   return (
     <Panel index="10" eyebrow="Interview Coach" title="Practice & get feedback">
       <Field label="Company"><input style={inputStyle} value={company} onChange={(e) => setCompany(e.target.value)} /></Field>
-      <Field label="Job JSON"><textarea style={inputStyle} rows={3} value={jobJson} onChange={(e) => setJobJson(e.target.value)} /></Field>
-      <RunButton onClick={gen} loading={loading} disabled={!jobJson}>Generate questions</RunButton>
+      <Field label="Job description (plain text — no JSON needed)"><textarea style={inputStyle} rows={3} value={jobText} onChange={(e) => setJobText(e.target.value)} placeholder="Paste the job description / role summary…" /></Field>
+      <RunButton onClick={gen} loading={loading} disabled={!jobText}>Generate questions</RunButton>
       <div style={{ marginTop: "1.5rem", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "1rem" }}>
         <Field label="Your answer to a question"><textarea style={inputStyle} rows={3} value={a} onChange={(e) => setA(e.target.value)} /></Field>
         <Field label="The question (optional)"><input style={inputStyle} value={q} onChange={(e) => setQ(e.target.value)} /></Field>
@@ -433,20 +446,30 @@ export function AnalyticsModule() {
 /* 14. Learning */
 export function LearningModule() {
   const [goal, setGoal] = useState("backend engineer");
-  const [missing, setMissing] = useState('{"critical":["system design"]}');
+  const [missing, setMissing] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
+  // Backend expects `missing` as a JSON dict; we let the user type plain text
+  // (comma- or newline-separated skills) and wrap it (no JSON typing needed).
+  function missingForApi(): any {
+    const t = missing.trim();
+    if (!t) return { critical: [] };
+    try { return JSON.parse(t); } catch {
+      const skills = t.split(/[\n,]+/).map((s) => s.trim()).filter(Boolean);
+      return { critical: skills };
+    }
+  }
   async function run() {
     setLoading(true); setError(null);
-    try { setResult(await api.intelligence.learning({ goal, missing: safeJson(missing, "missing") })); }
+    try { setResult(await api.intelligence.learning({ goal, missing: missingForApi() })); }
     catch (e: any) { setError(e.message); }
     finally { setLoading(false); }
   }
   return (
     <Panel index="14" eyebrow="Learning Paths" title="Close the gaps">
       <Field label="Goal"><input style={inputStyle} value={goal} onChange={(e) => setGoal(e.target.value)} /></Field>
-      <Field label="Missing skills (JSON)"><textarea style={inputStyle} rows={3} value={missing} onChange={(e) => setMissing(e.target.value)} /></Field>
+      <Field label="Missing skills (plain text — comma or newline separated, no JSON)"><textarea style={inputStyle} rows={3} value={missing} onChange={(e) => setMissing(e.target.value)} placeholder="system design, docker, system design, kubernetes" /></Field>
       <RunButton onClick={run} loading={loading} disabled={!goal || !missing}>Recommend learning</RunButton>
       <ErrorNote error={error} />
       {result && <ResultCard><Pre data={result} /></ResultCard>}
