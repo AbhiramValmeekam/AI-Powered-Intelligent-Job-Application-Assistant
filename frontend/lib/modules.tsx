@@ -7,6 +7,61 @@ import * as api from "@/lib/api";
 import { JobBoard } from "@/components/JobBoard";
 import { ResumeUpload } from "@/components/ResumeUpload";
 
+/* Renders an engine result object as structured, readable sections instead of
+   dumping raw JSON. Falls back to <Pre> when the shape isn't recognized. */
+function Section({ title, items }: { title: string; items: any }) {
+  const list = Array.isArray(items)
+    ? items
+    : typeof items === "string"
+      ? [items]
+      : items == null
+        ? []
+        : [items];
+  if (list.length === 0) return null;
+  return (
+    <div style={{ marginBottom: "1.1rem" }}>
+      <h4 style={{ margin: "0 0 0.5rem", fontSize: "0.82rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--signal, #6ee7b7)", opacity: 0.9 }}>{title}</h4>
+      <ol style={{ margin: 0, paddingLeft: "1.2rem", display: "grid", gap: "0.45rem" }}>
+        {list.map((it: any, i: number) => (
+          <li key={i} style={{ lineHeight: 1.5 }}>
+            {typeof it === "object" && it !== null ? JSON.stringify(it) : String(it)}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function StructuredResult({ data }: { data: any }) {
+  if (data == null) return null;
+  // Interview questions: { technical[], behavioral[], companySpecific[], systemDesign[] }
+  if (data.technical || data.behavioral || data.companySpecific || data.systemDesign) {
+    return (
+      <>
+        <Section title="Technical" items={data.technical} />
+        <Section title="Behavioral" items={data.behavioral} />
+        <Section title="Company Specific" items={data.companySpecific} />
+        <Section title="System Design" items={data.systemDesign} />
+      </>
+    );
+  }
+  // Learning paths: { courses[], books[], projects[], openSource[], certifications[], roadmap[] }
+  if (data.courses || data.books || data.projects || data.openSource || data.certifications || data.roadmap) {
+    return (
+      <>
+        <Section title="Courses" items={data.courses} />
+        <Section title="Books" items={data.books} />
+        <Section title="Projects" items={data.projects} />
+        <Section title="Open Source" items={data.openSource} />
+        <Section title="Certifications" items={data.certifications} />
+        <Section title="Roadmap" items={data.roadmap} />
+      </>
+    );
+  }
+  // Unrecognized shape -> raw JSON (still wrapped via .result-pre)
+  return <Pre data={data} />;
+}
+
 /* 2. Job Board (LinkedIn/Internshala style) */
 export function JobsModule() {
   return <JobBoard />;
@@ -334,8 +389,8 @@ export function InterviewModule() {
         <RunButton onClick={fb} loading={loading} disabled={!a}>Get feedback</RunButton>
       </div>
       <ErrorNote error={error} />
-      {questions && <ResultCard><Pre data={questions} /></ResultCard>}
-      {feedback && <ResultCard><Pre data={feedback} /></ResultCard>}
+      {questions && <ResultCard><StructuredResult data={questions} /></ResultCard>}
+      {feedback && <ResultCard><StructuredResult data={feedback} /></ResultCard>}
     </Panel>
   );
 }
@@ -472,7 +527,7 @@ export function LearningModule() {
       <Field label="Missing skills (plain text — comma or newline separated, no JSON)"><textarea style={inputStyle} rows={3} value={missing} onChange={(e) => setMissing(e.target.value)} placeholder="system design, docker, system design, kubernetes" /></Field>
       <RunButton onClick={run} loading={loading} disabled={!goal || !missing}>Recommend learning</RunButton>
       <ErrorNote error={error} />
-      {result && <ResultCard><Pre data={result} /></ResultCard>}
+      {result && <ResultCard><StructuredResult data={result} /></ResultCard>}
     </Panel>
   );
 }
