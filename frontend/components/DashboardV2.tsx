@@ -14,16 +14,14 @@ import {
   AtsModule, SkillsModule, ScamModule, CompanyModule, InterviewModule,
   TrackerModule, VersionsModule, AnalyticsModule, LearningModule, AdvisorModule,
 } from "@/lib/modules";
-import { JobBoard } from "@/components/JobBoard";
-import { JobApplyModal } from "@/components/JobBoard";
+import { JobBoard, JobApplyModal } from "@/components/JobBoard";
 import { EditProfileModal } from "@/components/AppAuth";
 import { stopScroll, startScroll } from "@/lib/smoothScroll";
 
-// Reference dashboard nav: every item maps to an existing module (portal).
-// The home page (Dashboard) stays exactly as designed; everything else is
-// reachable from the nav, grouped the same way the previous dashboard listed
-// all 16 features.
-type NavItem = { id: string; title: string; sub: string; Icon: any };
+// Reference dashboard nav: every item maps to an existing module. The home
+// page (Dashboard) stays exactly as designed; clicking any other item swaps
+// the CENTER column to that module while the nav + right rail stay visible.
+type NavItem = { id: string; title: string; sub: string; Icon: any; settings?: boolean; logout?: boolean };
 type NavSection = { heading?: string; items: NavItem[] };
 
 const NAV: NavSection[] = [
@@ -58,19 +56,10 @@ const NAV: NavSection[] = [
       { id: "analytics", title: "Analytics", sub: "Your stats", Icon: IconBar },
     ],
   },
-  {
-    heading: "Settings",
-    items: [
-      { id: "__settings", title: "Settings", sub: "Account", Icon: IconGear, settings: true } as any,
-      { id: "__logout", title: "Logout", sub: "Sign out", Icon: IconLogout, logout: true } as any,
-    ],
-  },
 ];
 
-// Flatten for active-state + portal lookups.
-const NAV_ITEMS = NAV.flatMap((s) => s.items).filter(
-  (n) => !(n as any).settings && !(n as any).logout,
-);
+const NAV_ITEMS = NAV.flatMap((s) => s.items).filter((n) => !n.settings && !n.logout);
+const NAV_BY_ID: Record<string, NavItem> = Object.fromEntries(NAV_ITEMS.map((n) => [n.id, n]));
 
 const MODULE_BY_ID: Record<string, React.ComponentType> = {
   jobs: JobsModule, alerts: AlertsModule, jd: JdModule, tailor: TailorModule,
@@ -84,15 +73,36 @@ function initials(name: string) {
   return (name || "?").trim().slice(0, 2).toUpperCase();
 }
 
+// Honest resume-readiness score derived from the saved master resume: how many
+// of the core sections are present. 0 when nothing is saved.
+function computeReadiness(text: string | null | undefined): number {
+  if (!text || text.trim().length < 40) return 0;
+  const t = text.toLowerCase();
+  const checks: [string[], number][] = [
+    [["email", "phone", "@"], 18],
+    [["experience", "work", "intern"], 22],
+    [["education", "university", "school", "b.tech", "btech"], 18],
+    [["skill", "technolog", "proficien"], 20],
+    [["project"], 12],
+    [["summary", "objective", "about"], 10],
+  ];
+  let score = 0;
+  for (const [keys, weight] of checks) {
+    if (keys.some((k) => t.includes(k))) score += weight;
+  }
+  return Math.min(100, score);
+}
+
 export function DashboardV2() {
   const { user } = useUser();
   const clerk = useClerk();
-  const [active, setActive] = useState<string | null>(null); // portal module id or 'dashboard'
+  // active = module id to show in the center, or null for the home dashboard.
+  const [active, setActive] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
 
-  // Right-rail data (live analytics)
+  // Right-rail + resume data (live)
   const [stats, setStats] = useState<{ total: number; interview: number; ats: number } | null>(null);
-  const [resumeReady, setResumeReady] = useState(72);
+  const [resumeText, setResumeText] = useState<string | null>(null);
 
   useEffect(() => {
     const email = user?.primaryEmailAddress?.emailAddress;
@@ -103,8 +113,18 @@ export function DashboardV2() {
       } catch {
         setStats({ total: 0, interview: 0, ats: 70 });
       }
+      if (email) {
+        try {
+          const mr = await api.resume.master.get(email);
+          setResumeText(mr?.data?.text || null);
+        } catch {
+          setResumeText(null);
+        }
+      }
     })();
   }, [user]);
+
+  const resumeReady = useMemo(() => computeReadiness(resumeText), [resumeText]);
 
   // Center job search
   const [query, setQuery] = useState("frontend engineering");
@@ -130,18 +150,10 @@ export function DashboardV2() {
   const avatar = user?.imageUrl || "";
   const displayName = user?.fullName || firstName;
 
-  const openModule = (id: string) => {
-    setActive(id);
-    stopScroll();
-  };
-  const closeModule = () => {
-    setActive(null);
-    startScroll();
-  };
+  const openModule = (id: string) => setActive(id);
+  const closeModule = () => setActive(null);
 
   const ActiveMod = active && NAV_ITEMS.some((n) => n.id === active) ? MODULE_BY_ID[active] : null;
-  // When the Job Workflow portal opens, carry the dashboard's current
-  // search so the tab continues exactly where "All discovered jobs" left off.
   const openJobs = () => openModule("jobs");
 
   return (
@@ -153,46 +165,33 @@ export function DashboardV2() {
           {NAV.map((section, si) => (
             <div key={section.heading || si} className="db3__navgroup">
               {section.heading && <p className="db3__navkicker">{section.heading}</p>}
-              {section.items.map((n: any) => {
-                if (n.settings) {
-                  return (
-                    <button key={n.id} className="db3__navitem" onClick={() => setEditing(true)}>
-                      <span className="db3__navicon"><n.Icon /></span>
-                      <span className="db3__navtext">
-                        <span className="db3__navtitle">{n.title}</span>
-                        <span className="db3__navsub">{n.sub}</span>
-                      </span>
-                    </button>
-                  );
-                }
-                if (n.logout) {
-                  return (
-                    <button key={n.id} className="db3__navitem" onClick={() => clerk.signOut({ redirectUrl: "/" })}>
-                      <span className="db3__navicon"><n.Icon /></span>
-                      <span className="db3__navtext">
-                        <span className="db3__navtitle">{n.title}</span>
-                        <span className="db3__navsub">{n.sub}</span>
-                      </span>
-                    </button>
-                  );
-                }
-                return (
-                  <button
-                    key={n.id}
-                    className={`db3__navitem${active === n.id || (n.id === "dashboard" && active === null) ? " is-active" : ""}`}
-                    onClick={() => (n.id === "dashboard" ? (setActive(null), startScroll()) : openModule(n.id))}
-                    aria-current={n.id === "dashboard" && active === null ? "page" : undefined}
-                  >
-                    <span className="db3__navicon"><n.Icon /></span>
-                    <span className="db3__navtext">
-                      <span className="db3__navtitle">{n.title}</span>
-                      <span className="db3__navsub">{n.sub}</span>
-                    </span>
-                  </button>
-                );
-              })}
+              {section.items.map((n) => (
+                <button
+                  key={n.id}
+                  className={`db3__navitem${active === n.id || (n.id === "dashboard" && active === null) ? " is-active" : ""}`}
+                  onClick={() => (n.id === "dashboard" ? closeModule() : openModule(n.id))}
+                  aria-current={n.id === "dashboard" && active === null ? "page" : undefined}
+                >
+                  <span className="db3__navicon"><n.Icon /></span>
+                  <span className="db3__navtext">
+                    <span className="db3__navtitle">{n.title}</span>
+                    <span className="db3__navsub">{n.sub}</span>
+                  </span>
+                </button>
+              ))}
             </div>
           ))}
+          <div className="db3__navgroup">
+            <p className="db3__navkicker">Settings</p>
+            <button className="db3__navitem" onClick={() => setEditing(true)}>
+              <span className="db3__navicon"><IconGear /></span>
+              <span className="db3__navtext"><span className="db3__navtitle">Settings</span><span className="db3__navsub">Account</span></span>
+            </button>
+            <button className="db3__navitem" onClick={() => clerk.signOut({ redirectUrl: "/" })}>
+              <span className="db3__navicon"><IconLogout /></span>
+              <span className="db3__navtext"><span className="db3__navtitle">Logout</span><span className="db3__navsub">Sign out</span></span>
+            </button>
+          </div>
         </nav>
         <p className="db3__footnote">CANDIDATE CONTROLLED WORKSPACE</p>
       </aside>
@@ -205,8 +204,8 @@ export function DashboardV2() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && search()}
-              placeholder="Search your resumes…"
-              aria-label="Search resumes"
+              placeholder="Search jobs by role or keyword…"
+              aria-label="Search jobs"
             />
           </div>
           <div className="db3__topactions">
@@ -223,9 +222,9 @@ export function DashboardV2() {
           </div>
         </header>
 
-        {active === null && (
+        {active === null ? (
+          /* HOME */
           <div className="db3__center" ref={searchRef}>
-            {/* Hero */}
             <section className="db3__hero">
               <div className="db3__herotext">
                 <p className="db3__herokick">CAREER WORKSPACE</p>
@@ -246,7 +245,6 @@ export function DashboardV2() {
               </div>
             </section>
 
-            {/* Job search (top priority) */}
             <section className="db3__jobs">
               <div className="db3__sectionhead">
                 <div>
@@ -296,26 +294,20 @@ export function DashboardV2() {
               </ul>
             </section>
           </div>
-        )}
-
-        {/* Module portal */}
-        {ActiveMod && (
-          <div className="db3__portal" role="dialog" aria-modal="true" aria-label={active ?? ""}>
-            <div className="db3__portal__bar">
+        ) : (
+          /* MODULE VIEW (center column swaps; nav + rail stay) */
+          <div className="db3__center">
+            <div className="db3__modulebar">
               <button className="db3__back" onClick={closeModule}>← Back to dashboard</button>
+              <span className="db3__modulecrumb">{NAV_BY_ID[active]?.title}</span>
             </div>
-            <div className="db3__portal__body">
-              {active === "jobs" ? (
-                <JobBoard initialQuery={query} initialLocation={location} />
-              ) : (
-                <ActiveMod />
-              )}
-            </div>
+            {active === "jobs" ? (
+              <JobBoard initialQuery={query} initialLocation={location} />
+            ) : ActiveMod ? (
+              <ActiveMod />
+            ) : null}
           </div>
         )}
-
-        {/* Center job preview → in-app apply modal (never redirects externally) */}
-        {selected && <JobApplyModal job={selected} onClose={() => setSelected(null)} />}
       </main>
 
       {/* ---------- RIGHT RAIL ---------- */}
@@ -337,7 +329,11 @@ export function DashboardV2() {
             </svg>
           </div>
           <p className="db3__greeting">Good morning, {firstName}.</p>
-          <p className="db3__railnote">Your resume is <strong>{resumeReady}% complete</strong>. Add the missing details to improve readiness.</p>
+          <p className="db3__railnote">
+            {resumeText
+              ? <>Your saved resume is <strong>{resumeReady}% complete</strong>. Open Resume Builder to refine it.</>
+              : <>No resume saved yet. Add your resume to power tailoring, matching & insights.</>}
+          </p>
           <button className="db3__cta db3__cta--ghost" onClick={() => openModule("tailor")}>Complete resume <IconArrow /></button>
         </section>
 
@@ -368,6 +364,9 @@ export function DashboardV2() {
           </div>
         </section>
       </aside>
+
+      {/* Center job preview → in-app apply modal (never redirects externally) */}
+      {selected && <JobApplyModal job={selected} onClose={() => setSelected(null)} />}
 
       {editing && <EditProfileModal email={user?.primaryEmailAddress?.emailAddress || ""} onClose={() => setEditing(false)} />}
     </div>

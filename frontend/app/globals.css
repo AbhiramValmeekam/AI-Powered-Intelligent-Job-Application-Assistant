@@ -3796,3 +3796,17 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
 /* Group spacing in the expanded dashboard nav */
 .db3__navgroup + .db3__navgroup { margin-top: 0.4rem; }
 .db3__navkicker { margin-top: 0.5rem; }
+
+/* Module view: center column swaps to a module while nav + rail stay. */
+.db3__modulebar {
+  display: flex; align-items: center; gap: 0.9rem;
+  padding: 0.2rem 0 0.4rem; margin-bottom: 0.4rem;
+}
+.db3__modulecrumb {
+  font-size: 0.8rem; font-weight: 600; letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--ink) 70%, transparent);
+}
+.db3__modulebar .db3__back { margin: 0; }
+/* Let tall module panels scroll inside the center column, not the whole page. */
+.db3__center { min-height: 0; }
+.db3__center > .panel, .db3__center > div > .panel { margin-top: 0.5rem; }
