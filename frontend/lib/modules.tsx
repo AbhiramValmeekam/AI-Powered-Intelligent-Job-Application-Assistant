@@ -183,6 +183,12 @@ export function AtsModule() {
   }
   return (
     <Panel index="06" eyebrow="ATS Analyzer" title="Score ATS fit">
+      <ResumeUpload
+        label="Upload resume (PDF/DOCX) — or paste below"
+        value={tailored}
+        onChange={setTailored}
+        placeholder='{"skills":["python"]} or pasted resume text'
+      />
       <Field label="Tailored resume (JSON or text)"><textarea style={inputStyle} rows={4} value={tailored} onChange={(e) => setTailored(e.target.value)} placeholder='{"skills":["python"]}' /></Field>
       <Field label="Job JSON"><textarea style={inputStyle} rows={4} value={jdJson} onChange={(e) => setJdJson(e.target.value)} placeholder='{"requiredSkills":["python","java"]}' /></Field>
       <RunButton onClick={run} loading={loading} disabled={!tailored || !jdJson}>Analyze ATS</RunButton>
