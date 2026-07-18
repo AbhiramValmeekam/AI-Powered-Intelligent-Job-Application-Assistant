@@ -6,6 +6,8 @@ import * as api from "@/lib/api";
 import {
   IconHome, IconBriefcase, IconDoc, IconSearchDoc, IconTarget,
   IconBell, IconSun, IconGear, IconLogout, IconPlus, IconArrow, IconTrend,
+  IconBellDot, IconFileText, IconMail, IconShield, IconBuilding, IconChat,
+  IconClipboard, IconLayers, IconBar, IconBook, IconSpark,
 } from "@/components/icons";
 import {
   JobsModule, AlertsModule, JdModule, TailorModule, CoverModule,
@@ -17,14 +19,58 @@ import { JobApplyModal } from "@/components/JobBoard";
 import { EditProfileModal } from "@/components/AppAuth";
 import { stopScroll, startScroll } from "@/lib/smoothScroll";
 
-// Reference dashboard nav: every icon maps to an existing module (portal).
-const NAV = [
-  { id: "dashboard", title: "Dashboard", sub: "Overview", Icon: IconHome },
-  { id: "jobs", title: "Job Workflow", sub: "Live discovery", Icon: IconBriefcase },
-  { id: "tailor", title: "Resume Builder", sub: "Tailor & generate", Icon: IconDoc },
-  { id: "ats", title: "ATS Analyzer", sub: "Score fit", Icon: IconSearchDoc },
-  { id: "skills", title: "Job Matcher", sub: "Skill gaps", Icon: IconTarget },
-] as const;
+// Reference dashboard nav: every item maps to an existing module (portal).
+// The home page (Dashboard) stays exactly as designed; everything else is
+// reachable from the nav, grouped the same way the previous dashboard listed
+// all 16 features.
+type NavItem = { id: string; title: string; sub: string; Icon: any };
+type NavSection = { heading?: string; items: NavItem[] };
+
+const NAV: NavSection[] = [
+  {
+    heading: "Overview",
+    items: [
+      { id: "dashboard", title: "Dashboard", sub: "Overview", Icon: IconHome },
+      { id: "jobs", title: "Job Workflow", sub: "Live discovery", Icon: IconBriefcase },
+      { id: "alerts", title: "Job Alerts", sub: "Smart matches", Icon: IconBellDot },
+      { id: "jd", title: "Job Analysis", sub: "Parse a posting", Icon: IconFileText },
+    ],
+  },
+  {
+    heading: "Resume & Apply",
+    items: [
+      { id: "tailor", title: "Resume Builder", sub: "Tailor & generate", Icon: IconDoc },
+      { id: "cover", title: "Cover Letter", sub: "Generate", Icon: IconMail },
+      { id: "ats", title: "ATS Analyzer", sub: "Score fit", Icon: IconSearchDoc },
+      { id: "skills", title: "Job Matcher", sub: "Skill gaps", Icon: IconTarget },
+      { id: "versions", title: "Resume Versions", sub: "History", Icon: IconLayers },
+      { id: "tracker", title: "Application Tracker", sub: "Your pipeline", Icon: IconClipboard },
+    ],
+  },
+  {
+    heading: "Intelligence",
+    items: [
+      { id: "scam", title: "Scam Shield", sub: "Fraud check", Icon: IconShield },
+      { id: "company", title: "Company Research", sub: "Insights", Icon: IconBuilding },
+      { id: "interview", title: "Interview Prep", sub: "Practice", Icon: IconChat },
+      { id: "learning", title: "Learning Path", sub: "Upskill", Icon: IconBook },
+      { id: "advisor", title: "AI Advisor", sub: "Ask anything", Icon: IconSpark },
+      { id: "analytics", title: "Analytics", sub: "Your stats", Icon: IconBar },
+    ],
+  },
+  {
+    heading: "Settings",
+    items: [
+      { id: "__settings", title: "Settings", sub: "Account", Icon: IconGear, settings: true } as any,
+      { id: "__logout", title: "Logout", sub: "Sign out", Icon: IconLogout, logout: true } as any,
+    ],
+  },
+];
+
+// Flatten for active-state + portal lookups.
+const NAV_ITEMS = NAV.flatMap((s) => s.items).filter(
+  (n) => !(n as any).settings && !(n as any).logout,
+);
 
 const MODULE_BY_ID: Record<string, React.ComponentType> = {
   jobs: JobsModule, alerts: AlertsModule, jd: JdModule, tailor: TailorModule,
@@ -93,7 +139,7 @@ export function DashboardV2() {
     startScroll();
   };
 
-  const ActiveMod = active && !NAV.find((n) => n.id === active) ? MODULE_BY_ID[active] : null;
+  const ActiveMod = active && NAV_ITEMS.some((n) => n.id === active) ? MODULE_BY_ID[active] : null;
   // When the Job Workflow portal opens, carry the dashboard's current
   // search so the tab continues exactly where "All discovered jobs" left off.
   const openJobs = () => openModule("jobs");
@@ -104,34 +150,51 @@ export function DashboardV2() {
       <aside className="db3__nav" aria-label="Primary">
         <div className="db3__brand">CareerOS</div>
         <nav className="db3__navlist" aria-label="Modules">
-          {NAV.map((n) => (
-            <button
-              key={n.id}
-              className={`db3__navitem${active === n.id || (n.id === "dashboard" && active === null) ? " is-active" : ""}`}
-              onClick={() => (n.id === "dashboard" ? (setActive(null), startScroll()) : openModule(n.id))}
-              aria-current={n.id === "dashboard" && active === null ? "page" : undefined}
-            >
-              <span className="db3__navicon"><n.Icon /></span>
-              <span className="db3__navtext">
-                <span className="db3__navtitle">{n.title}</span>
-                <span className="db3__navsub">{n.sub}</span>
-              </span>
-            </button>
+          {NAV.map((section, si) => (
+            <div key={section.heading || si} className="db3__navgroup">
+              {section.heading && <p className="db3__navkicker">{section.heading}</p>}
+              {section.items.map((n: any) => {
+                if (n.settings) {
+                  return (
+                    <button key={n.id} className="db3__navitem" onClick={() => setEditing(true)}>
+                      <span className="db3__navicon"><n.Icon /></span>
+                      <span className="db3__navtext">
+                        <span className="db3__navtitle">{n.title}</span>
+                        <span className="db3__navsub">{n.sub}</span>
+                      </span>
+                    </button>
+                  );
+                }
+                if (n.logout) {
+                  return (
+                    <button key={n.id} className="db3__navitem" onClick={() => clerk.signOut({ redirectUrl: "/" })}>
+                      <span className="db3__navicon"><n.Icon /></span>
+                      <span className="db3__navtext">
+                        <span className="db3__navtitle">{n.title}</span>
+                        <span className="db3__navsub">{n.sub}</span>
+                      </span>
+                    </button>
+                  );
+                }
+                return (
+                  <button
+                    key={n.id}
+                    className={`db3__navitem${active === n.id || (n.id === "dashboard" && active === null) ? " is-active" : ""}`}
+                    onClick={() => (n.id === "dashboard" ? (setActive(null), startScroll()) : openModule(n.id))}
+                    aria-current={n.id === "dashboard" && active === null ? "page" : undefined}
+                  >
+                    <span className="db3__navicon"><n.Icon /></span>
+                    <span className="db3__navtext">
+                      <span className="db3__navtitle">{n.title}</span>
+                      <span className="db3__navsub">{n.sub}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           ))}
         </nav>
-
-        <div className="db3__navfoot">
-          <p className="db3__navkicker">Settings</p>
-          <button className="db3__navitem" onClick={() => setEditing(true)}>
-            <span className="db3__navicon"><IconGear /></span>
-            <span className="db3__navtext"><span className="db3__navtitle">Settings</span><span className="db3__navsub">Account</span></span>
-          </button>
-          <button className="db3__navitem" onClick={() => clerk.signOut({ redirectUrl: "/" })}>
-            <span className="db3__navicon"><IconLogout /></span>
-            <span className="db3__navtext"><span className="db3__navtitle">Logout</span><span className="db3__navsub">Sign out</span></span>
-          </button>
-          <p className="db3__footnote">CANDIDATE CONTROLLED WORKSPACE</p>
-        </div>
+        <p className="db3__footnote">CANDIDATE CONTROLLED WORKSPACE</p>
       </aside>
 
       {/* ---------- CENTER ---------- */}

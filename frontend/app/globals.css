@@ -3792,3 +3792,7 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
 .jobpager__num.is-active {
   background: var(--signal); color: #1a1205; border-color: var(--signal); font-weight: 700;
 }
+
+/* Group spacing in the expanded dashboard nav */
+.db3__navgroup + .db3__navgroup { margin-top: 0.4rem; }
+.db3__navkicker { margin-top: 0.5rem; }

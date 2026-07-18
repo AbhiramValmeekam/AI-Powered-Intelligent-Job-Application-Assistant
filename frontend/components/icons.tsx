@@ -51,3 +51,37 @@ export const IconArrow = (p: P) => (
 export const IconTrend = (p: P) => (
   <svg {...base(p)}><path d="M4 16l5-5 3 3 7-7M16 7h4v4" /></svg>
 );
+// Additional nav icons for the full feature set.
+export const IconBellDot = (p: P) => (
+  <svg {...base(p)}><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" /><path d="M10 20a2 2 0 0 0 4 0" /><circle cx="18" cy="6" r="2.5" fill="currentColor" stroke="none" /></svg>
+);
+export const IconFileText = (p: P) => (
+  <svg {...base(p)}><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" /><path d="M14 3v5h5M9 13h6M9 17h6" /></svg>
+);
+export const IconMail = (p: P) => (
+  <svg {...base(p)}><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M4 7l8 6 8-6" /></svg>
+);
+export const IconShield = (p: P) => (
+  <svg {...base(p)}><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3Z" /><path d="M9 12l2 2 4-4" /></svg>
+);
+export const IconBuilding = (p: P) => (
+  <svg {...base(p)}><rect x="4" y="3" width="16" height="18" rx="1.5" /><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2M10 21v-3h4v3" /></svg>
+);
+export const IconChat = (p: P) => (
+  <svg {...base(p)}><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-5 4V6a1 1 0 0 1 1-1Z" /><path d="M8 9h8M8 13h5" /></svg>
+);
+export const IconClipboard = (p: P) => (
+  <svg {...base(p)}><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4V3h6v1M9 9h6M9 13h6M9 17h4" /></svg>
+);
+export const IconLayers = (p: P) => (
+  <svg {...base(p)}><path d="M12 3l9 5-9 5-9-5 9-5Z" /><path d="M3 13l9 5 9-5M3 17l9 5 9-5" /></svg>
+);
+export const IconBar = (p: P) => (
+  <svg {...base(p)}><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+);
+export const IconBook = (p: P) => (
+  <svg {...base(p)}><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5Z" /><path d="M4 19a2 2 0 0 1 2-2h13" /></svg>
+);
+export const IconSpark = (p: P) => (
+  <svg {...base(p)}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18" /></svg>
+);
