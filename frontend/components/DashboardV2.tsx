@@ -159,7 +159,7 @@ export function DashboardV2() {
   return (
     <div className="db3" data-app-motion>
       {/* ---------- LEFT NAV ---------- */}
-      <aside className="db3__nav" aria-label="Primary">
+      <aside className="db3__nav" aria-label="Primary" data-lenis-prevent>
         <div className="db3__brand">CareerOS</div>
         <nav className="db3__navlist" aria-label="Modules">
           {NAV.map((section, si) => (
@@ -296,7 +296,7 @@ export function DashboardV2() {
           </div>
         ) : (
           /* MODULE VIEW (center column swaps; nav + rail stay) */
-          <div className="db3__center">
+          <div className="db3__center" data-lenis-prevent>
             <div className="db3__modulebar">
               <button className="db3__back" onClick={closeModule}>← Back to dashboard</button>
               <span className="db3__modulecrumb">{NAV_BY_ID[active]?.title}</span>
