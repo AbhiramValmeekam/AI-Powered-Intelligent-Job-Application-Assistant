@@ -3810,3 +3810,6 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
 /* Let tall module panels scroll inside the center column, not the whole page. */
 .db3__center { min-height: 0; }
 .db3__center > .panel, .db3__center > div > .panel { margin-top: 0.5rem; }
+
+/* Live scan indicator on the right rail */
+.db3__live { color: var(--signal); font-weight: 700; letter-spacing: 0; }

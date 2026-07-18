@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import * as api from "@/lib/api";
 import {
@@ -103,28 +103,63 @@ export function DashboardV2() {
   // Right-rail + resume data (live)
   const [stats, setStats] = useState<{ total: number; interview: number; ats: number } | null>(null);
   const [resumeText, setResumeText] = useState<string | null>(null);
+  const [completeness, setCompleteness] = useState<number | null>(null);
+  const [scanning, setScanning] = useState(false);
+
+  // Run the ATS readiness scan on a resume and push the result into the rail.
+  async function scanResume(text: string, email?: string) {
+    if (!text || text.trim().length < 20) {
+      setCompleteness(0);
+      setStats((s) => (s ? { ...s, ats: 0 } : s));
+      return;
+    }
+    setScanning(true);
+    try {
+      const r: any = await api.resume.score(email ? { email } : { text });
+      const d = r?.data || {};
+      if (typeof d.atsScore === "number") {
+        setStats((s) => (s ? { ...s, ats: d.atsScore } : { total: 0, interview: 0, ats: d.atsScore }));
+      }
+      if (typeof d.completeness === "number") setCompleteness(d.completeness);
+    } catch {
+      /* keep last known score */
+    } finally {
+      setScanning(false);
+    }
+  }
+
+  // Reload rail data + run a fresh ATS scan. Called on mount and whenever a
+  // resume is uploaded/saved elsewhere (the 'resume:updated' event).
+  const loadData = useCallback(async () => {
+    const email = user?.primaryEmailAddress?.emailAddress;
+    try {
+      const r = await api.analytics.summary(email || undefined);
+      if (r) setStats({ total: r.totalApplications ?? 0, interview: r.interviewRate ?? 0, ats: r.atsScore ?? 0 });
+      if (typeof r?.resumeCompleteness === "number") setCompleteness(r.resumeCompleteness);
+    } catch {
+      setStats({ total: 0, interview: 0, ats: 0 });
+    }
+    if (email) {
+      try {
+        const mr = await api.resume.master.get(email);
+        const text = mr?.data?.text || null;
+        setResumeText(text);
+        // Auto ATS scan whenever the saved resume is loaded → real score.
+        if (text) await scanResume(text, email);
+      } catch {
+        setResumeText(null);
+      }
+    }
+  }, [user, scanResume]);
 
   useEffect(() => {
-    const email = user?.primaryEmailAddress?.emailAddress;
-    (async () => {
-      try {
-        const r = await api.analytics.summary(email || undefined);
-        if (r) setStats({ total: r.totalApplications ?? 0, interview: r.interviewRate ?? 0, ats: r.atsScore ?? 70 });
-      } catch {
-        setStats({ total: 0, interview: 0, ats: 70 });
-      }
-      if (email) {
-        try {
-          const mr = await api.resume.master.get(email);
-          setResumeText(mr?.data?.text || null);
-        } catch {
-          setResumeText(null);
-        }
-      }
-    })();
-  }, [user]);
+    void loadData();
+    const onUpd = () => void loadData();
+    window.addEventListener("resume:updated", onUpd);
+    return () => window.removeEventListener("resume:updated", onUpd);
+  }, [loadData]);
 
-  const resumeReady = useMemo(() => computeReadiness(resumeText), [resumeText]);
+  const resumeReady = completeness ?? computeReadiness(resumeText);
 
   // Center job search
   const [query, setQuery] = useState("frontend engineering");
@@ -313,7 +348,7 @@ export function DashboardV2() {
       {/* ---------- RIGHT RAIL ---------- */}
       <aside className="db3__rail" aria-label="Status and analytics">
         <section className="db3__readiness">
-          <p className="db3__eyebrow">READINESS</p>
+          <p className="db3__eyebrow">READINESS {scanning && <span className="db3__live">• scanning</span>}</p>
           <h2 className="db3__h2">Resume completeness</h2>
           <div className="db3__gauge" role="img" aria-label={`${resumeReady} percent complete`}>
             <svg viewBox="0 0 120 120" width="120" height="120">
@@ -331,21 +366,23 @@ export function DashboardV2() {
           <p className="db3__greeting">Good morning, {firstName}.</p>
           <p className="db3__railnote">
             {resumeText
-              ? <>Your saved resume is <strong>{resumeReady}% complete</strong>. Open Resume Builder to refine it.</>
+              ? <>Your saved resume is <strong>{resumeReady}% complete</strong>. ATS scans run automatically on every upload.</>
               : <>No resume saved yet. Add your resume to power tailoring, matching & insights.</>}
           </p>
-          <button className="db3__cta db3__cta--ghost" onClick={() => openModule("tailor")}>Complete resume <IconArrow /></button>
+          <button className="db3__cta db3__cta--ghost" onClick={() => resumeText && scanResume(resumeText, user?.primaryEmailAddress?.emailAddress)} disabled={scanning}>
+            {scanning ? "Scanning…" : "Re-scan resume"} <IconArrow />
+          </button>
         </section>
 
         <section className="db3__analysis">
           <div className="db3__sectionhead">
             <div>
-              <p className="db3__eyebrow">ANALYSIS</p>
+              <p className="db3__eyebrow">ANALYSIS {stats && typeof stats.ats === "number" && <span className="db3__live">• live</span>}</p>
               <h2 className="db3__h2">ATS progress</h2>
             </div>
             <IconTrend />
           </div>
-          <div className="db3__chart" aria-label="ATS score over time">
+          <div className="db3__chart" aria-label="ATS score">
             <span className="db3__chartpct">{stats ? stats.ats : "—"}%</span>
             <div className="db3__bar" style={{ height: `${stats ? stats.ats : 70}%` }}>
               <span className="db3__barfill" style={{ height: `${stats ? stats.ats : 70}%` }} />

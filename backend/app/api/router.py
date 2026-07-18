@@ -543,9 +543,18 @@ async def analytics_summary(email: str = None):
     interviews = by_status.get("Interview", 0)
     success_rate = round(100 * offers / total, 1) if total else 0.0
     interview_rate = round(100 * interviews / total, 1) if total else 0.0
+    # Live ATS score + resume completeness (from the last upload scan).
+    ats_score = None
+    completeness = None
+    if email:
+        prof = await coll("profiles").find_one({"email": email})
+        if prof:
+            ats_score = prof.get("atsScore")
+            completeness = prof.get("resumeCompleteness")
     return {"ok": True, "data": {
         "totalApplications": total, "byStatus": by_status,
         "offerRate": success_rate, "interviewRate": interview_rate,
+        "atsScore": ats_score, "resumeCompleteness": completeness,
     }}
 
 
@@ -581,20 +590,64 @@ async def advisor_chat(body: AdvisorIn, gemini: GeminiClient = Depends(get_gemin
 @router.post("/resume/master")
 async def upsert_master_resume(body: dict):
     from app.core.database import coll
+    from app.engines.resume.ats_readiness import score_resume
     email = (body.get("email") or "").strip()
     text = (body.get("text") or "").strip()
     if not email:
         raise HTTPException(status_code=422, detail="email is required.")
     if not text:
         raise HTTPException(status_code=422, detail="Resume text is required.")
+    # Auto-run the ATS scan on every upload so the dashboard shows a real score.
+    try:
+        scored = score_resume(text)
+        ats_score = scored.get("atsScore")
+        completeness = scored.get("completeness")
+    except Exception:
+        ats_score, completeness = None, None
     existing = await coll("masterresumes").find_one({"email": email})
     if existing:
         await coll("masterresumes").update_one(
             {"_id": existing["_id"]}, {"$set": {"text": text, "updatedAt": datetime.utcnow()}})
-        return {"ok": True, "updated": True}
-    await coll("masterresumes").insert_one(
-        {"email": email, "text": text, "createdAt": datetime.utcnow(), "updatedAt": datetime.utcnow()})
-    return {"ok": True, "created": True}
+        result = {"ok": True, "updated": True}
+    else:
+        await coll("masterresumes").insert_one(
+            {"email": email, "text": text, "createdAt": datetime.utcnow(), "updatedAt": datetime.utcnow()})
+        result = {"ok": True, "created": True}
+    # Persist the live score on the profile so analytics picks it up.
+    if ats_score is not None:
+        await coll("profiles").update_one(
+            {"email": email},
+            {"$set": {"atsScore": ats_score, "resumeCompleteness": completeness,
+                      "atsUpdatedAt": datetime.utcnow()}},
+            upsert=True,
+        )
+    result["atsScore"] = ats_score
+    result["completeness"] = completeness
+    return result
+
+
+@router.post("/resume/score")
+async def score_master_resume(body: dict):
+    """Run the ATS readiness scan on a resume text (or a stored master resume)."""
+    from app.engines.resume.ats_readiness import score_resume
+    text = (body.get("text") or "").strip()
+    email = (body.get("email") or "").strip()
+    if not text and email:
+        from app.core.database import coll
+        doc = await coll("masterresumes").find_one({"email": email})
+        if doc:
+            text = (doc.get("text") or "").strip()
+    if not text:
+        raise HTTPException(status_code=422, detail="Resume text (or email for a stored resume) is required.")
+    scored = score_resume(text)
+    if email:
+        await coll("profiles").update_one(
+            {"email": email},
+            {"$set": {"atsScore": scored.get("atsScore"), "resumeCompleteness": scored.get("completeness"),
+                      "atsUpdatedAt": datetime.utcnow()}},
+            upsert=True,
+        )
+    return {"ok": True, "data": scored}
 
 
 @router.get("/resume/master")

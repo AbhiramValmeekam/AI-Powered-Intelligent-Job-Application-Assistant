@@ -129,6 +129,9 @@ export function EditProfileModal({ email, onClose }: { email: string; onClose: (
         careerPreferences: { goal: goal.trim() },
       });
       if (resume.trim()) await resumeApi.master.upsert(email, resume.trim());
+      if (resume.trim() && typeof window !== "undefined") {
+        window.dispatchEvent(new Event("resume:updated"));
+      }
       setDone(true);
     } catch (e: any) {
       setError(e?.message || "Could not save.");

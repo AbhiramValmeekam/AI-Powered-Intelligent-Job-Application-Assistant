@@ -115,6 +115,12 @@ export const resume = {
         body: JSON.stringify({ email, text }),
       }),
   },
+  // Run the ATS readiness scan on resume text (or a stored master resume).
+  score: (payload: { text?: string; email?: string }) =>
+    request<any>("/api/resume/score", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 };
 
 // 8. Scam shield

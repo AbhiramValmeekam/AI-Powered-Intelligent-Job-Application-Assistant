@@ -164,6 +164,8 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       // Save the master resume (used for tailoring, auto-apply, etc.)
       if (form.resume.trim()) {
         await resumeApi.master.upsert(email, form.resume.trim());
+        // Tell the dashboard to re-run the ATS scan live.
+        if (typeof window !== "undefined") window.dispatchEvent(new Event("resume:updated"));
       }
       // animate out
       setClosing(true);
