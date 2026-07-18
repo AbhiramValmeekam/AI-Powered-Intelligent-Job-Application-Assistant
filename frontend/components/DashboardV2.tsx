@@ -13,6 +13,7 @@ import {
   TrackerModule, VersionsModule, AnalyticsModule, LearningModule, AdvisorModule,
 } from "@/lib/modules";
 import { JobBoard } from "@/components/JobBoard";
+import { JobApplyModal } from "@/components/JobBoard";
 import { EditProfileModal } from "@/components/AppAuth";
 import { stopScroll, startScroll } from "@/lib/smoothScroll";
 
@@ -66,6 +67,7 @@ export function DashboardV2() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [selected, setSelected] = useState<any | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
   async function search() {
@@ -214,7 +216,7 @@ export function DashboardV2() {
 
               <ul className="db3__listings">
                 {jobs.slice(0, 6).map((j, i) => (
-                  <li key={i} className="db3__listing" onClick={() => j.url && window.open(j.url, "_blank", "noreferrer")}>
+                  <li key={i} className="db3__listing" onClick={() => setSelected(j)}>
                     <div className="db3__listingmain">
                       <p className="db3__listingtitle">{j.title}</p>
                       <p className="db3__listingsub">{j.company}{j.location ? ` · ${j.location}` : ""}</p>
@@ -248,6 +250,9 @@ export function DashboardV2() {
             </div>
           </div>
         )}
+
+        {/* Center job preview → in-app apply modal (never redirects externally) */}
+        {selected && <JobApplyModal job={selected} onClose={() => setSelected(null)} />}
       </main>
 
       {/* ---------- RIGHT RAIL ---------- */}

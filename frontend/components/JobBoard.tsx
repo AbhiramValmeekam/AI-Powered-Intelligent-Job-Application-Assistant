@@ -203,7 +203,7 @@ export function JobBoard({ initialQuery, initialLocation }: { initialQuery?: str
   );
 }
 
-function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
+export function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
   const [email, setEmail] = useState("");
   const [profile, setProfile] = useState<any>(null);
   const [profileErr, setProfileErr] = useState<string | null>(null);
@@ -427,8 +427,7 @@ function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void }) {
             </div>
             <p className="modal__fineprint">
               Auto-Apply tailors your resume to this job with AI, then files the application in your tracker.
-              Track only saves it without tailoring. No redirect to the source site.
-              {job.url && <a href={job.url} target="_blank" rel="noreferrer" className="modal__srclink">View original posting ↗</a>}
+              Track only saves it without tailoring. Applications are filed in-app — no redirect to the source site.
             </p>
           </>
         )}
