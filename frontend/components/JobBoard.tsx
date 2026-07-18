@@ -219,6 +219,40 @@ export function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void 
   onCloseRef.current = onClose;
   useEffect(() => setMounted(true), []);
 
+  // Auto-fill the form from the job the moment the modal opens (best-effort);
+  // fully populated once the user's profile loads via email.
+  useEffect(() => { autofill(null, job); }, [job]);
+
+  // Auto-filled application form. Populated from the user's profile + the
+  // parsed job so the user never types from scratch.
+  const [form, setForm] = useState<{
+    fullName: string; phone: string; links: string;
+    fitPitch: string; expectedSalary: string; portfolio: string;
+  }>({ fullName: "", phone: "", links: "", fitPitch: "", expectedSalary: "", portfolio: "" });
+
+  function autofill(profile: any, job: Job) {
+    const name = profile?.fullName || "";
+    const phone = profile?.phone || profile?.location ? "" : "";
+    const links = profile?.links
+      ? Object.entries(profile.links).map(([k, v]) => `${k}: ${v}`).join("\n")
+      : "";
+    const skills = (profile?.skills || []).join(", ");
+    const goal = profile?.careerPreferences?.goal || "";
+    const jobSkills = (job.skills || []).join(", ");
+    const fitPitch =
+      `As a ${goal || "candidate"} with strengths in ${skills || "relevant tech"}, ` +
+      `I'm a strong fit for this ${job.title} role at ${job.company}` +
+      `${jobSkills ? ` — my experience aligns with ${jobSkills}.` : "."}`;
+    setForm({
+      fullName: name,
+      phone: profile?.phone || "",
+      links,
+      fitPitch,
+      expectedSalary: profile?.salaryExpectation || "",
+      portfolio: profile?.links?.portfolio || profile?.links?.github || "",
+    });
+  }
+
   // Focus + scroll lock: while the popup is open, the background must not
   // scroll and focus stays trapped inside the modal.
   useEffect(() => {
@@ -271,11 +305,13 @@ export function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void 
     try {
       const p = await api.profiles.get(email);
       setProfile(p);
+      autofill(p, job); // auto-fill the form from the saved profile
     } catch (e: any) {
       setProfileErr(e.message.includes("404") || e.message.includes("not found")
-        ? "No profile found. You can still apply — it will be saved with this email."
+        ? "No profile found. We'll still auto-fill what we can — review before applying."
         : e.message);
       setProfile(null);
+      autofill(null, job); // best-effort fill from the job alone
     } finally { setLoadingProfile(false); }
   }
 
@@ -301,7 +337,13 @@ export function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void 
     if (!email) { setSubmitErr("Enter your email so we can tailor & apply."); return; }
     setAutoBusy(true); setSubmitErr(null); setAutoResult(null);
     try {
-      const r = await api.applications.autoApply({ email, job });
+      const r = await api.applications.autoApply({
+        email, job,
+        formData: {
+          fullName: form.fullName, phone: form.phone, links: form.links,
+          fitPitch: form.fitPitch, expectedSalary: form.expectedSalary, portfolio: form.portfolio,
+        },
+      });
       setAutoResult(r);
       setDone(true);
     } catch (e: any) { setSubmitErr(e.message); }
@@ -318,8 +360,8 @@ export function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void 
 
         {done ? (
           <div className="modal__done">
-            <h3>{autoResult ? "Auto-applied ✅" : "Application tracked ✅"}</h3>
-            <p>Your application to <strong>{job.company}</strong> for <strong>{job.title}</strong> is saved in your Application Tracker (status: Applied).</p>
+            <h3>{autoResult ? "Applied ✅" : "Application tracked ✅"}</h3>
+            <p>Your application to <strong>{job.company}</strong> for <strong>{job.title}</strong> is filed in your Application Tracker (status: Applied) with your tailored resume and the auto-filled form.</p>
             {autoResult && (
               <div className="modal__auto">
                 {autoResult.data?.tailored ? (
@@ -386,10 +428,37 @@ export function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void 
             </div>
 
             <div className="modal__section">
-              <h4>Your details</h4>
-              <Field label="Email (used to load your profile & track the application)">
-                <input style={inputStyle} value={email} onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com" onBlur={loadProfile} />
+              <h4>Application form <span className="modal__autofill">auto-filled</span></h4>
+              <p className="modal__hint">Filled from your profile &amp; this job — review, edit if needed, then Auto-Apply.</p>
+              <div className="modal__formgrid">
+                <Field label="Full name">
+                  <input style={inputStyle} value={form.fullName}
+                    onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))} />
+                </Field>
+                <Field label="Email">
+                  <input style={inputStyle} value={email}
+                    onChange={(e) => setEmail(e.target.value)} onBlur={loadProfile}
+                    placeholder="you@example.com" />
+                </Field>
+                <Field label="Phone">
+                  <input style={inputStyle} value={form.phone}
+                    onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                    placeholder="+91 …" />
+                </Field>
+                <Field label="Expected salary">
+                  <input style={inputStyle} value={form.expectedSalary}
+                    onChange={(e) => setForm((f) => ({ ...f, expectedSalary: e.target.value }))}
+                    placeholder="12 LPA" />
+                </Field>
+              </div>
+              <Field label="Links (github / linkedin / portfolio)">
+                <textarea style={{ ...inputStyle, resize: "vertical" }} rows={2} value={form.links}
+                  onChange={(e) => setForm((f) => ({ ...f, links: e.target.value }))}
+                  placeholder={"github: …\nlinkedin: …"} />
+              </Field>
+              <Field label="Why are you a fit? (sent with your application)">
+                <textarea style={{ ...inputStyle, resize: "vertical" }} rows={3} value={form.fitPitch}
+                  onChange={(e) => setForm((f) => ({ ...f, fitPitch: e.target.value }))} />
               </Field>
               {loadingProfile && <p className="modal__hint">Loading profile…</p>}
               {profileErr && <p className="modal__hint modal__hint--warn">{profileErr}</p>}
@@ -400,9 +469,6 @@ export function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void 
                     <div className="jobcard__tags">
                       {profile.skills.map((s: string, k: number) => <span key={k} className="chip">{s}</span>)}
                     </div>
-                  )}
-                  {profile.careerPreferences?.goal && (
-                    <p className="modal__hint">Goal: {profile.careerPreferences.goal}</p>
                   )}
                 </div>
               )}
@@ -416,7 +482,7 @@ export function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void 
                 {submitting ? "Saving…" : "Track only"}
               </button>
               <StatusButton
-                idleLabel="⚡ Auto-Apply (tailor + submit)"
+                idleLabel="⚡ Auto-Apply (fill + tailor + apply)"
                 loadingLabel="Tailoring & applying…"
                 successLabel="Applied"
                 loading={autoBusy}
@@ -426,8 +492,8 @@ export function JobApplyModal({ job, onClose }: { job: Job; onClose: () => void 
               />
             </div>
             <p className="modal__fineprint">
-              Auto-Apply tailors your resume to this job with AI, then files the application in your tracker.
-              Track only saves it without tailoring. Applications are filed in-app — no redirect to the source site.
+              Auto-Apply fills the form from your profile, tailors your resume to this job with AI, then files the
+              application in your tracker (status: Applied). Track only saves without tailoring. All in-app — no redirect.
             </p>
           </>
         )}

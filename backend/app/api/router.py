@@ -423,6 +423,7 @@ async def auto_apply(body: dict, gemini: GeminiClient = Depends(get_gemini)):
 
     email = (body.get("email") or body.get("candidateEmail") or "").strip()
     job = body.get("job") or {}
+    form_data = body.get("formData") or {}
     if not email:
         raise HTTPException(status_code=422, detail="email is required to auto-apply.")
     if not job.get("title"):
@@ -431,8 +432,13 @@ async def auto_apply(body: dict, gemini: GeminiClient = Depends(get_gemini)):
     jd = (job.get("description") or "").strip()
     resume_text = (body.get("resumeText") or "").strip()
     profile = await coll("profiles").find_one({"email": email})
-    if not resume_text and profile:
-        resume_text = _profile_to_resume_text(profile)
+    # Prefer the saved master resume; fall back to the flattened profile.
+    if not resume_text:
+        master = await coll("masterresumes").find_one({"email": email})
+        if master and (master.get("text") or "").strip():
+            resume_text = master["text"].strip()
+        elif profile:
+            resume_text = _profile_to_resume_text(profile)
 
     tailored = None
     tailor_error = None
@@ -469,6 +475,7 @@ async def auto_apply(body: dict, gemini: GeminiClient = Depends(get_gemini)):
         "tailoredSummary": (tailored or {}).get("summary"),
         "coverLetter": (tailored or {}).get("coverLetter"),
         "missingSkills": (tailored or {}).get("missingSkills", []),
+        "formData": form_data or None,
     }
     res = await coll("applications").insert_one({k: v for k, v in application.items() if v is not None})
 

@@ -164,7 +164,7 @@ export const applications = {
     method: "POST",
     body: JSON.stringify(payload),
   }),
-  autoApply: (payload: { email: string; job: any; resumeText?: string }) =>
+  autoApply: (payload: { email: string; job: any; resumeText?: string; formData?: any }) =>
     request<any>("/api/applications/auto-apply", {
       method: "POST",
       body: JSON.stringify(payload),

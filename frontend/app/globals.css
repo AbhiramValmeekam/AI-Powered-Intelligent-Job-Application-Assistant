@@ -3861,3 +3861,24 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
 
 /* Live scan indicator on the right rail */
 .db3__live { color: var(--signal); font-weight: 700; letter-spacing: 0; }
+
+/* Auto-filled application form inside the job apply modal */
+.modal__formgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+.modal__formgrid .Field { margin: 0; }
+.modal__autofill {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6ee7b7;
+  background: rgba(110, 231, 183, 0.12);
+  border: 1px solid rgba(110, 231, 183, 0.35);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+}
+@media (max-width: 520px) { .modal__formgrid { grid-template-columns: 1fr; } }
