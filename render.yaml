@@ -1,0 +1,25 @@
+# Root Render Blueprint. Use Render → New → Blueprints → connect repo.
+# (Also kept at backend/render.yaml for Web Service manual setup.)
+services:
+  - type: web
+    name: careeros-backend
+    runtime: python
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: MONGODB_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: ADZUNA_APP_ID
+        sync: false
+      - key: ADZUNA_APP_KEY
+        sync: false
+      - key: JOBSHIELD_MODEL_DIR
+        value: "/app/backend/models"

@@ -6,7 +6,6 @@
   "outputDirectory": ".next",
   "regions": ["iad1"],
   "env": {
-    "NEXT_PUBLIC_GET_STARTED_URL": "/app",
-    "NEXT_PUBLIC_API_BASE": "http://localhost:8000"
+    "NEXT_PUBLIC_GET_STARTED_URL": "/app"
   }
 }
