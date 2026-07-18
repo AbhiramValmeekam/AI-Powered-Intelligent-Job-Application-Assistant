@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { profiles, resume as resumeApi } from "@/lib/api";
 import { ResumeUpload } from "@/components/ResumeUpload";
 import { extractProfile } from "@/lib/resumeExtract";
+import { stopScroll, startScroll } from "@/lib/smoothScroll";
 
 type Form = {
   fullName: string;
@@ -97,9 +98,10 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
     }
   }, [step]);
 
-  // Intro animation + focus first field
+  // Intro animation + focus first field + lock background scroll while open.
   useEffect(() => {
     if (!isLoaded || !user) return;
+    stopScroll();
     const root = document.querySelector(".onboarding");
     if (root) {
       gsap.fromTo(
@@ -108,6 +110,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         { autoAlpha: 1, duration: 0.4, ease: "power2.out" }
       );
     }
+    return () => startScroll();
   }, [isLoaded, user]);
 
   function set<K extends keyof Form>(k: K, v: string) {
@@ -195,7 +198,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="onboarding" role="dialog" aria-modal="true" aria-label="Welcome to CareerOS">
-      <div className="onboarding__card" ref={cardRef}>
+      <div className="onboarding__card" ref={cardRef} data-lenis-prevent>
         <div className="onboarding__progress">
           <div className="onboarding__progress-bar" ref={progressRef} />
         </div>

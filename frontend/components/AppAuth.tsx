@@ -7,6 +7,7 @@ import { profiles, resume as resumeApi } from "@/lib/api";
 import { ResumeUpload } from "@/components/ResumeUpload";
 import { StatusButton } from "@/components/StatusButton";
 import { extractProfile } from "@/lib/resumeExtract";
+import { stopScroll, startScroll } from "@/lib/smoothScroll";
 
 const clerkEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -69,6 +70,7 @@ export function EditProfileModal({ email, onClose }: { email: string; onClose: (
     if (!mounted) return;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    stopScroll(); // fully pause Lenis so wheeling the modal can't move the page
     modalRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -77,6 +79,7 @@ export function EditProfileModal({ email, onClose }: { email: string; onClose: (
     return () => {
       document.body.style.overflow = prevOverflow;
       document.removeEventListener("keydown", onKey);
+      startScroll();
     };
   }, [mounted, onClose]);
 
