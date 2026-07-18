@@ -11,11 +11,11 @@ python-dotenv==1.0.1
 apscheduler==3.11.3
 # Document parsing (resume/cover-letter engine, ported from AI_Resume_Agent)
 pypdf==4.3.1
-python-docx==1.13.1
+python-docx==1.1.2
 requests==2.32.3
 # JobShield scam-detection engine (see engines/scamshield/requirements.txt)
 joblib==1.4.2
-scikit-learn==1.5.1
+scikit-learn==1.5.2
 xgboost==2.1.1
 lightgbm==4.5.0
 pandas==2.2.2
