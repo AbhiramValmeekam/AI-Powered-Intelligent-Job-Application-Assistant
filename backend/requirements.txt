@@ -3,10 +3,10 @@ fastapi==0.115.0
 uvicorn[standard]==0.30.6
 pydantic==2.9.2
 pydantic-settings==2.5.2
-motor==3.5.1            # async MongoDB driver
+motor==3.7.1            # async MongoDB driver (3.7.x supports pymongo >=4.5)
 python-multipart==0.0.12
 httpx==0.27.2
-pymongo==4.4.1
+pymongo==4.10.0
 python-dotenv==1.0.1
 apscheduler==3.11.3
 # Document parsing (resume/cover-letter engine, ported from AI_Resume_Agent)
