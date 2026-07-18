@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { useUser } from "@clerk/nextjs";
 import { profiles, resume as resumeApi } from "@/lib/api";
 import { ResumeUpload } from "@/components/ResumeUpload";
+import { extractProfile } from "@/lib/resumeExtract";
 
 type Form = {
   fullName: string;
@@ -113,6 +114,22 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
+  // When a resume is parsed, auto-fill every empty field so the user doesn't
+  // have to retype what's already in their document. Existing entries win.
+  function autoFillFromResume(text: string) {
+    const e = extractProfile(text);
+    setForm((f) => ({
+      ...f,
+      fullName: f.fullName.trim() || e.fullName,
+      location: f.location.trim() || e.location,
+      skills: f.skills.trim() || e.skills.join(", "),
+      education: f.education.trim() || e.education.join("\n"),
+      experience: f.experience.trim() || e.experience.join("\n"),
+      links: f.links.trim() || e.links,
+      goal: f.goal.trim() || e.goal,
+    }));
+  }
+
   function next() {
     if (step < TOTAL - 1) {
       setStep((s) => s + 1);
@@ -218,7 +235,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
                 <span>Career goal / preferred roles</span>
                 <input style={inputStyle} value={form.goal} onChange={(e) => set("goal", e.target.value)} placeholder="Backend / AI engineer" />
               </label>
-              <ResumeUpload label="Upload your resume (used for tailoring & auto-apply)" value={form.resume} onChange={(t) => set("resume", t)} />
+              <ResumeUpload label="Upload your resume (we'll auto-fill the form from it)" value={form.resume} onChange={(t) => { set("resume", t); if (t) autoFillFromResume(t); }} />
             </div>
           )}
 

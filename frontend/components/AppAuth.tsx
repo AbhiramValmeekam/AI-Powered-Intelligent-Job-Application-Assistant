@@ -6,6 +6,7 @@ import { UserButton, useUser } from "@clerk/nextjs";
 import { profiles, resume as resumeApi } from "@/lib/api";
 import { ResumeUpload } from "@/components/ResumeUpload";
 import { StatusButton } from "@/components/StatusButton";
+import { extractProfile } from "@/lib/resumeExtract";
 
 const clerkEnabled = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -108,6 +109,14 @@ export function EditProfileModal({ email, onClose }: { email: string; onClose: (
     };
   }, [email]);
 
+  function autoFillFromResume(text: string) {
+    const e = extractProfile(text);
+    if (e.fullName) setFullName((v) => v.trim() || e.fullName);
+    if (e.location) setLocation((v) => v.trim() || e.location);
+    if (e.skills.length) setSkills((v) => v.trim() || e.skills.join(", "));
+    if (e.goal) setGoal((v) => v.trim() || e.goal);
+  }
+
   async function save() {
     setSaving(true);
     setError(null);
@@ -190,9 +199,9 @@ export function EditProfileModal({ email, onClose }: { email: string; onClose: (
               />
             </label>
             <ResumeUpload
-              label="Master resume (used for tailoring & auto-apply)"
+              label="Master resume (we'll auto-fill the form from it)"
               value={resume}
-              onChange={setResume}
+              onChange={(t) => { setResume(t); if (t) autoFillFromResume(t); }}
             />
             {error && <p className="modal__err">{error}</p>}
           </div>
