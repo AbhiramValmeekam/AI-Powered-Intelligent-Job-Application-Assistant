@@ -316,7 +316,7 @@ async def scam_check(body: ScamCheckIn):
     try:
         result = _run(lambda: engine.analyze(text=body.text, url=body.url))
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Scam analysis failed: {str(e)[:200]}")
+        raise HTTPException(status_code=503, detail=f"Scam analysis failed: {str(e)[:800]}")
     from app.core.database import coll
     try:
         doc = dict(result); doc["type"] = body.type
