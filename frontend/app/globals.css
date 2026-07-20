@@ -1703,22 +1703,25 @@
       top: auto;
       left: -0.04em;
       display: flex;
+      flex-wrap: wrap;
       z-index: 3;
-      font-size: 27vw;
-      line-height: 0.67;
+      font-size: clamp(3.2rem, 15vw, 5.6rem);
+      line-height: 0.72;
+      white-space: normal;
       transform: none;
+      margin-bottom: 1rem;
     }
 
     .hero__resume-sheet {
       z-index: 1;
-      top: 31%;
-      right: -16%;
-      width: 52vw;
-      height: 43vh;
-      min-height: 19rem;
+      top: auto;
+      right: -8%;
+      width: 44vw;
+      height: auto;
+      min-height: 0;
       padding: 0.85rem;
-      opacity: 0.32;
-      box-shadow: 0.7rem 0.7rem 0 var(--forest);
+      opacity: 0.22;
+      box-shadow: 0.5rem 0.5rem 0 var(--forest);
     }
 
     .hero__descriptor {
@@ -1727,8 +1730,9 @@
       bottom: auto;
       z-index: 4;
       align-items: flex-start;
-      margin-top: 1.8rem;
-      font-size: 14vw;
+      margin-top: 1rem;
+      font-size: clamp(0.95rem, 4.6vw, 1.5rem);
+      line-height: 1.4;
     }
 
     .hero__meta {
@@ -2026,8 +2030,8 @@
       right: auto;
       bottom: auto;
       left: auto;
-      margin-top: 13vh;
-      font-size: 19vw;
+      margin-top: 6vh;
+      font-size: clamp(2rem, 8.5vw, 3.8rem);
     }
 
     .climax__stage {
@@ -2036,7 +2040,8 @@
     }
 
     .climax__cv {
-      font-size: 84vw;
+      font-size: 40vw;
+      opacity: 0.1;
     }
 
     .climax__label {
@@ -2046,8 +2051,8 @@
 
     .climax__statement {
       width: 100%;
-      font-size: 16.4vw;
-      line-height: 0.78;
+      font-size: clamp(2.2rem, 10vw, 4.2rem);
+      line-height: 0.82;
     }
 
     .climax__statement span:nth-child(2),
@@ -2086,18 +2091,21 @@
     }
 
     .final__title {
-      font-size: 26vw;
+      font-size: clamp(2.4rem, 11vw, 4.4rem);
+      line-height: 0.9;
+      margin-bottom: 1.5rem;
     }
 
     .final__copy {
-      width: 78%;
-      margin: 2rem 0 0 18%;
-      font-size: 0.86rem;
+      width: 100%;
+      margin: 1.5rem 0 0 0;
+      font-size: 0.92rem;
+      line-height: 1.5;
     }
 
     .final__action {
       display: grid;
-      margin: 2rem 0 0 18%;
+      margin: 2rem 0 0 0;
     }
 
     .primary-cta {
@@ -2107,9 +2115,11 @@
     }
 
     .final__crop {
-      right: -18vw;
+      right: -4vw;
       bottom: 1rem;
-      font-size: 66vw;
+      font-size: 34vw;
+      opacity: 0.1;
+      z-index: 0;
     }
 
     .site-footer {
