@@ -311,9 +311,12 @@ async def scam_check(body: ScamCheckIn):
         )
     try:
         engine = ScamShieldEngine()
-    except RuntimeError as e:
+    except Exception as e:
         raise HTTPException(status_code=503, detail=str(e))
-    result = _run(lambda: engine.analyze(text=body.text, url=body.url))
+    try:
+        result = _run(lambda: engine.analyze(text=body.text, url=body.url))
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Scam analysis failed: {str(e)[:200]}")
     from app.core.database import coll
     try:
         doc = dict(result); doc["type"] = body.type
