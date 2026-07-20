@@ -2184,6 +2184,26 @@
     .boundary__statement { font-size: clamp(2rem, 8.5vw, 3.8rem); }
     .climax__statement { font-size: clamp(2.2rem, 10vw, 4.2rem); }
     .final__title-line { font-size: clamp(2rem, 8vw, 3.6rem); }
+
+    /* Remaining big display type + word-wrap safety so nothing clips mid-word */
+    .boundary__header h2 { font-size: clamp(2rem, 8vw, 3.8rem); }
+    .final__title { font-size: clamp(2.4rem, 11vw, 4.6rem); }
+    .match__stop h3 { font-size: clamp(1.6rem, 5vw, 2.8rem); }
+    .loader__mark { font-size: clamp(3rem, 14vw, 7rem); }
+    .hero__title,
+    .match__intro h2,
+    .read__headline,
+    .principle h3,
+    .boundary__statement,
+    .boundary__header h2,
+    .climax__statement,
+    .final__title,
+    .final__title-line,
+    .match__destination strong,
+    .match__stop h3 {
+      overflow-wrap: break-word;
+      max-width: 100%;
+    }
   }
 
   @media (max-width: 430px) {
