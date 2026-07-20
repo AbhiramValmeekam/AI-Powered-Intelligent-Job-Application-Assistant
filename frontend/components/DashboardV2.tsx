@@ -111,6 +111,7 @@ export function DashboardV2() {
   // active = module id to show in the center, or null for the home dashboard.
   const [active, setActive] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   // Right-rail + resume data (live)
   const [stats, setStats] = useState<{ total: number; interview: number; ats: number } | null>(null);
@@ -171,6 +172,22 @@ export function DashboardV2() {
     return () => window.removeEventListener("resume:updated", onUpd);
   }, [loadData]);
 
+  // Close the profile popover on outside-click or Escape.
+  useEffect(() => {
+    if (!profileOpen) return;
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      if (!t.closest(".db3__avatarwrap")) setProfileOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setProfileOpen(false); };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [profileOpen]);
+
   const resumeReady = completeness ?? computeReadiness(resumeText);
 
   // Center job search
@@ -228,17 +245,6 @@ export function DashboardV2() {
               ))}
             </div>
           ))}
-          <div className="db3__navgroup">
-            <p className="db3__navkicker">Settings</p>
-            <button className="db3__navitem" onClick={() => setEditing(true)}>
-              <span className="db3__navicon"><IconGear /></span>
-              <span className="db3__navtext"><span className="db3__navtitle">Settings</span><span className="db3__navsub">Account</span></span>
-            </button>
-            <button className="db3__navitem" onClick={() => clerk.signOut({ redirectUrl: "/" })}>
-              <span className="db3__navicon"><IconLogout /></span>
-              <span className="db3__navtext"><span className="db3__navtitle">Logout</span><span className="db3__navsub">Sign out</span></span>
-            </button>
-          </div>
         </nav>
         <p className="db3__footnote">CANDIDATE CONTROLLED WORKSPACE</p>
       </aside>
@@ -263,9 +269,28 @@ export function DashboardV2() {
               root.dataset.theme = next; root.style.colorScheme = next;
               try { localStorage.setItem("careeros-theme", next); } catch {}
             }}><IconSun /></button>
-            <button className="db3__avatar" aria-label="Profile">
-              {avatar ? <img src={avatar} alt="" /> : <span>{initials(displayName)}</span>}
-            </button>
+            <div className="db3__avatarwrap">
+              <button
+                className={`db3__avatar${profileOpen ? " is-open" : ""}`}
+                aria-label="Profile menu"
+                aria-haspopup="menu"
+                aria-expanded={profileOpen}
+                onClick={() => setProfileOpen((v) => !v)}
+              >
+                {avatar ? <img src={avatar} alt="" /> : <span>{initials(displayName)}</span>}
+              </button>
+              {profileOpen && (
+                <div className="db3__pop" role="menu">
+                  <div className="db3__pophead">{displayName}</div>
+                  <button className="db3__popitem" role="menuitem" onClick={() => { setProfileOpen(false); setEditing(true); }}>
+                    <IconGear /> Edit profile
+                  </button>
+                  <button className="db3__popitem db3__popitem--danger" role="menuitem" onClick={() => clerk.signOut({ redirectUrl: "/" })}>
+                    <IconLogout /> Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

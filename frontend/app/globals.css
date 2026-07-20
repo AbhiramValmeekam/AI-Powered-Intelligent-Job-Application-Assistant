@@ -3748,6 +3748,41 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
 .db3__topactions { display: flex; align-items: center; gap: 0.6rem; }
 .db3__iconbtn { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; cursor: pointer; color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); }
 .db3__iconbtn:hover { background: color-mix(in srgb, var(--ink) 12%, transparent); }
+
+/* Avatar popover (replaces the Settings/Logout nav items) */
+.db3__avatarwrap { position: relative; }
+.db3__avatar {
+  width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; cursor: pointer;
+  color: var(--ink); background: color-mix(in srgb, var(--ink) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); overflow: hidden; padding: 0;
+}
+.db3__avatar img { width: 100%; height: 100%; object-fit: cover; }
+.db3__avatar.is-open { border-color: var(--forest); }
+.db3__pop {
+  position: absolute; top: calc(100% + 0.5rem); right: 0; z-index: 50;
+  min-width: 12rem; padding: 0.4rem;
+  background: var(--canvas); color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  border-radius: 14px; box-shadow: 0 24px 60px -28px rgba(0,0,0,0.55);
+}
+.db3__pophead {
+  padding: 0.5rem 0.7rem 0.6rem; font-size: 0.82rem; font-weight: 700;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent); margin-bottom: 0.35rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.db3__popitem {
+  display: flex; align-items: center; gap: 0.6rem; width: 100%;
+  padding: 0.6rem 0.7rem; border: none; background: transparent; cursor: pointer;
+  border-radius: 10px; color: var(--ink); font: inherit; font-size: 0.9rem; text-align: left;
+}
+.db3__popitem:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.db3__popitem--danger { color: #e5484d; }
+.db3__popitem--danger:hover { background: color-mix(in srgb, #e5484d 12%, transparent); }
+
+/* keep popover usable on mobile (the bottom nav already covers nav) */
+@media (max-width: 680px) {
+  .db3__pop { right: 0; }
+}
 .db3__avatar { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; cursor: pointer; border: 1px solid color-mix(in srgb, var(--ink) 18%, transparent); background: var(--forest); color: #fff; font-weight: 700; }
 .db3__avatar img { width: 100%; height: 100%; object-fit: cover; }
 
