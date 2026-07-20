@@ -322,16 +322,14 @@ export function DashboardV2() {
                   <button
                     className="db3__popitem db3__popitem--danger"
                     role="menuitem"
-                    onClick={async () => {
+                    onClick={() => {
                       setProfileOpen(false);
-                      try {
-                        await clerk.signOut({ redirectUrl: "/" });
-                        // Hard redirect in case the SPA redirect gets stuck in middleware.
-                        window.location.assign("/");
-                      } catch (err) {
-                        console.error("Logout failed", err);
-                        window.location.assign("/sign-in");
-                      }
+                      // Navigate to the landing page INSTANTLY; invalidate the
+                      // session in the background so there's no ~1s hold.
+                      window.location.href = "/";
+                      clerk.signOut({ redirectUrl: "/" }).catch((err) =>
+                        console.error("Logout failed", err)
+                      );
                     }}
                   >
                     <IconLogout /> Logout
