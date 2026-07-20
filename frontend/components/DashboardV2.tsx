@@ -322,14 +322,18 @@ export function DashboardV2() {
                   <button
                     className="db3__popitem db3__popitem--danger"
                     role="menuitem"
-                    onClick={() => {
+                    onClick={async () => {
                       setProfileOpen(false);
-                      // Navigate to the landing page INSTANTLY; invalidate the
-                      // session in the background so there's no ~1s hold.
-                      window.location.href = "/";
-                      clerk.signOut({ redirectUrl: "/" }).catch((err) =>
-                        console.error("Logout failed", err)
-                      );
+                      try {
+                        // Await the sign-out so the session is actually
+                        // invalidated server-side; Clerk then redirects to "/".
+                        // (Navigating before this resolves leaves the session
+                        // alive, so "Start" would drop you back in — don't.)
+                        await clerk.signOut({ redirectUrl: "/" });
+                      } catch (err) {
+                        console.error("Logout failed", err);
+                        window.location.href = "/sign-in";
+                      }
                     }}
                   >
                     <IconLogout /> Logout
