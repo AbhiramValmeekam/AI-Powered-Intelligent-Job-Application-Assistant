@@ -14,22 +14,18 @@
  * Nothing translates aggressively or flies — it reads as the camera moving
  * backward through the loading screen into the workspace.
  *
- * Replay policy: runs once per Clerk session (keyed by sessionId).
- * Reduced motion -> skip straight to ready.
+ * Plays on every mount of /app (every reload). Reduced motion -> skip.
  */
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { useUser, useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import gsap from "gsap";
 import { DashboardV2 } from "./DashboardV2";
 
 type Phase = "loading" | "ready";
 
-const BOOT_KEY = (sid?: string | null) => `careeros_booted_${sid ?? "anon"}`;
-
 export default function BootController() {
   const { isLoaded, isSignedIn } = useUser();
-  const { sessionId } = useAuth();
   const [phase, setPhase] = useState<Phase>("loading");
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -40,17 +36,13 @@ export default function BootController() {
   const logoRef = useRef<HTMLDivElement>(null); // wordmark (attached to scene)
   const dashRef = useRef<HTMLDivElement>(null); // dashboard LAYER (underneath)
 
-  const skip =
-    isLoaded && isSignedIn && typeof window !== "undefined" && sessionStorage.getItem(BOOT_KEY(sessionId));
-
   useLayoutEffect(() => {
     if (!isLoaded || !isSignedIn) return;
-    if (skip || phase === "ready") {
+    if (phase === "ready") {
       setPhase("ready");
       return;
     }
     if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      sessionStorage.setItem(BOOT_KEY(sessionId), "1");
       setPhase("ready");
       return;
     }
@@ -77,7 +69,6 @@ export default function BootController() {
       const tl = gsap.timeline({
         defaults: { ease: "power4.inOut" },
         onComplete: () => {
-          sessionStorage.setItem(BOOT_KEY(sessionId), "1");
           setPhase("ready");
         },
       });
@@ -121,7 +112,7 @@ export default function BootController() {
     }, rootRef);
 
     return () => ctx.revert();
-  }, [isLoaded, isSignedIn, skip, sessionId, phase]);
+  }, [isLoaded, isSignedIn, phase]);
 
   return (
     <div ref={rootRef} className="boot-root">
