@@ -285,7 +285,21 @@ export function DashboardV2() {
                   <button className="db3__popitem" role="menuitem" onClick={() => { setProfileOpen(false); setEditing(true); }}>
                     <IconGear /> Edit profile
                   </button>
-                  <button className="db3__popitem db3__popitem--danger" role="menuitem" onClick={() => clerk.signOut({ redirectUrl: "/" })}>
+                  <button
+                    className="db3__popitem db3__popitem--danger"
+                    role="menuitem"
+                    onClick={async () => {
+                      setProfileOpen(false);
+                      try {
+                        await clerk.signOut({ redirectUrl: "/" });
+                        // Hard redirect in case the SPA redirect gets stuck in middleware.
+                        window.location.assign("/");
+                      } catch (err) {
+                        console.error("Logout failed", err);
+                        window.location.assign("/sign-in");
+                      }
+                    }}
+                  >
                     <IconLogout /> Logout
                   </button>
                 </div>
