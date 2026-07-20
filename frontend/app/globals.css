@@ -2125,6 +2125,61 @@
     }
   }
 
+  /* ---- Mobile landing fixes: real scroll runway + smaller type ----
+     The per-scene heights below were previously only defined at min-width:769px,
+     so on phones the pinned GSAP scenes had ~zero scroll distance (the "scroll
+     forever / 4-5 swipes to advance" symptom). Give them runway so the cinematic
+     scroll animations engage identically to desktop. Fonts are also shrunk so the
+     hero/headline type no longer clips. */
+  @media (max-width: 768px) {
+    .scene--hero { height: 175vh; }
+    .scene--read { height: 155vh; }
+    .scene--match { height: 200vh; }
+    .scene--principles { height: 205vh; }
+    .scene--move { height: 150vh; }
+    .scene--climax { height: 135vh; }
+    .scene--final { height: 135vh; }
+
+    /* Hero "BEYOND THE CV" — was clamp(8rem,24.5vw,28rem) + nowrap (clipped) */
+    .hero__title {
+      font-size: clamp(3.4rem, 16vw, 6rem);
+      white-space: normal;
+      left: 0.5vw;
+      top: 46%;
+      line-height: 0.66;
+    }
+    /* Decorative resume sheet was overflowing the right edge on mobile */
+    .hero__resume-sheet {
+      width: clamp(7.5rem, 44vw, 12rem);
+      min-height: 0;
+      right: 1.5%;
+      top: 16%;
+      padding: 0.9rem;
+    }
+
+    /* Scene 2 "ONE PROFILE / MORE THAN ONE DIRECTION" — was too tall */
+    .match__intro {
+      left: 1.2rem;
+      right: 1.2rem;
+      width: auto;
+      top: 12%;
+    }
+    .match__intro h2 {
+      font-size: clamp(2.1rem, 9vw, 3.4rem);
+      line-height: 0.82;
+    }
+    .match__destination strong {
+      font-size: clamp(2.2rem, 11vw, 4rem);
+    }
+
+    /* Generic big scene headlines: cap the vw so they fit phones */
+    .read__headline { font-size: clamp(2rem, 8vw, 3.6rem); }
+    .principle h3 { font-size: clamp(2.4rem, 13vw, 5rem); }
+    .boundary__statement { font-size: clamp(2rem, 8.5vw, 3.8rem); }
+    .climax__statement { font-size: clamp(2.2rem, 10vw, 4.2rem); }
+    .final__title-line { font-size: clamp(2rem, 8vw, 3.6rem); }
+  }
+
   @media (max-width: 430px) {
     .loader {
       padding: 1rem;
