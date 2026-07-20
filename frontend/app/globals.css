@@ -4268,6 +4268,14 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
   animation: boot-spin 0.9s linear infinite;
 }
 @keyframes boot-spin { to { transform: rotate(360deg); } }
+/* Mini spinner shown only briefly while Clerk hydrates (under the wordmark). */
+.boot-loader--mini {
+  position: absolute;
+  bottom: -3.2rem;
+  display: grid;
+  place-items: center;
+}
+.boot-loader--mini .boot-loader__spinner { width: 20px; height: 20px; }
 
 /* Reduced motion: skip the choreography. */
 @media (prefers-reduced-motion: reduce) {

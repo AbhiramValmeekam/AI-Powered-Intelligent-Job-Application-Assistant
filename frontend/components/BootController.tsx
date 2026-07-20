@@ -25,7 +25,7 @@ import { DashboardV2 } from "./DashboardV2";
 type Phase = "loading" | "ready";
 
 export default function BootController() {
-  const { isLoaded, isSignedIn } = useUser();
+  const { isLoaded } = useUser();
   const [phase, setPhase] = useState<Phase>("loading");
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -37,16 +37,15 @@ export default function BootController() {
   const dashRef = useRef<HTMLDivElement>(null); // dashboard LAYER (underneath)
 
   useLayoutEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
-    if (phase === "ready") {
-      setPhase("ready");
-      return;
-    }
+    if (phase === "ready") return;
     if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setPhase("ready");
       return;
     }
-
+    // Run once on mount. /app is middleware-protected, so the user is already
+    // authenticated here — we do NOT wait on Clerk's client useUser() (it can
+    // stall on reload and leave only the spinner). The dashboard is mounted
+    // underneath; we just orchestrate the camera pull-back.
     const ctx = gsap.context(() => {
       const scene = sceneRef.current!;
       const bg = bgRef.current!;
@@ -56,54 +55,30 @@ export default function BootController() {
       const dash = dashRef.current!;
 
       // --- initial states (before paint; useLayoutEffect => no flash) ---
-      // Loading layer calm and present.
       gsap.set(scene, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
       gsap.set(bg, { autoAlpha: 1, scale: 1 });
       gsap.set(particles, { autoAlpha: 1, scale: 1, yPercent: 0 });
       gsap.set(glass, { autoAlpha: 0.5 });
       gsap.set(logo, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
-      // Dashboard hidden underneath, slightly larger + dim + blurred (camera far).
       gsap.set(dash, { autoAlpha: 0, scale: 1.08, filter: "blur(20px)", brightness: 0.7 });
       gsap.set("[data-boot]", { autoAlpha: 0, y: 16, scale: 0.98, filter: "blur(15px)" });
 
       const tl = gsap.timeline({
         defaults: { ease: "power4.inOut" },
-        onComplete: () => {
-          setPhase("ready");
-        },
+        onComplete: () => setPhase("ready"),
       });
 
-      // LABELS — everything overlaps; nothing fully finishes before the next starts.
-      tl.addLabel("reveal", 0.35); // begin ~350ms after mount (auth settle)
+      tl.addLabel("reveal", 0.35);
 
-      // Loading LAYER pulls back: scale up, blur, fade. The camera moves away.
       tl.to(scene, { scale: 1.15, filter: "blur(25px)", autoAlpha: 0, duration: 1.9 }, "reveal");
-      // Far bg recedes a touch faster (parallax depth).
       tl.to(bg, { scale: 1.22, autoAlpha: 0, duration: 1.7 }, "reveal");
-      // Particles drift + recede.
       tl.to(particles, { scale: 1.3, yPercent: -6, autoAlpha: 0, duration: 1.8 }, "reveal");
-      // Glass overlays soften first.
       tl.to(glass, { autoAlpha: 0, duration: 0.9 }, "reveal");
-      // Wordmark stays attached to the scene: shrink + blur + fade (no travel).
       tl.to(logo, { scale: 0.22, filter: "blur(15px)", autoAlpha: 0, duration: 1.7 }, "reveal");
-
-      // Dashboard LAYER emerges: scale down, un-blur, brighten, fade in.
       tl.to(dash, { autoAlpha: 1, scale: 1, filter: "blur(0px)", brightness: 1, duration: 1.9 }, "reveal+=0.15");
 
-      // Navbar first (guide the eye), then sidebar, greeting, widgets, charts…
-      const order = [
-        ".db3__topbar",
-        ".db3__nav",
-        ".db3__topactions",
-        ".db3__center",
-        ".db3__rail",
-      ];
-      tl.to(
-        order,
-        { autoAlpha: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.9, stagger: 0.08 },
-        "reveal+=0.55",
-      );
-      // Remaining [data-boot] cards emerge after the structure is in focus.
+      const order = [".db3__topbar", ".db3__nav", ".db3__topactions", ".db3__center", ".db3__rail"];
+      tl.to(order, { autoAlpha: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.9, stagger: 0.08 }, "reveal+=0.55");
       tl.to(
         '[data-boot]:not(.db3__topbar):not(.db3__nav):not(.db3__topactions):not(.db3__center):not(.db3__rail)',
         { autoAlpha: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.8, stagger: 0.05 },
@@ -112,7 +87,7 @@ export default function BootController() {
     }, rootRef);
 
     return () => ctx.revert();
-  }, [isLoaded, isSignedIn, phase]);
+  }, [phase]);
 
   return (
     <div ref={rootRef} className="boot-root">
@@ -132,17 +107,15 @@ export default function BootController() {
           </div>
           <div ref={glassRef} className="boot-scene__glass" aria-hidden="true" />
           <div className="boot-scene__center">
-            {!isLoaded || !isSignedIn ? (
-              <div className="boot-loader">
-                <span className="boot-loader__spinner" />
-                <p>Preparing your workspace…</p>
+            <div ref={logoRef} className="boot-logo">
+              <div className="boot-logo__text">
+                <span className="boot-logo__career">Career</span>
+                <span className="boot-logo__os">OS</span>
               </div>
-            ) : (
-              <div ref={logoRef} className="boot-logo">
-                <div className="boot-logo__text">
-                  <span className="boot-logo__career">Career</span>
-                  <span className="boot-logo__os">OS</span>
-                </div>
+            </div>
+            {!isLoaded && (
+              <div className="boot-loader boot-loader--mini" aria-hidden="true">
+                <span className="boot-loader__spinner" />
               </div>
             )}
           </div>
