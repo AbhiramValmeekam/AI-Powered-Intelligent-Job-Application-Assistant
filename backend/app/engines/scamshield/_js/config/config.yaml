@@ -1,0 +1,72 @@
+# ============================================================
+# JobShield AI - Central Configuration
+# ============================================================
+
+project:
+  name: JobShield AI
+  version: "1.0.0"
+  random_seed: 42
+
+paths:
+  datasets_dir: datasets
+  saved_models_dir: saved_models
+  reports_dir: saved_models/reports
+
+labels:
+  # Canonical 3-class taxonomy
+  classes: [Legitimate, Suspicious, Fraudulent]
+
+risk_levels:
+  # score (0-100) -> band
+  - {min: 0,  max: 25,  band: Safe,       color: "#2ecc71"}
+  - {min: 26, max: 50,  band: Low Risk,   color: "#f1c40f"}
+  - {min: 51, max: 75,  band: Suspicious, color: "#e67e22"}
+  - {min: 76, max: 100, band: Fraudulent, color: "#e74c3c"}
+
+data:
+  test_size: 0.2
+  val_size: 0.1
+  stratify: true
+
+features:
+  tfidf:
+    max_features: 20000
+    ngram_range: [1, 2]
+    min_df: 2
+    sublinear_tf: true
+
+# Classical models to train + compare
+models:
+  logistic_regression: {enabled: true,  max_iter: 1000, C: 4.0}
+  linear_svm:          {enabled: true,  C: 1.0}
+  random_forest:       {enabled: true,  n_estimators: 300, max_depth: null}
+  xgboost:             {enabled: true,  n_estimators: 400, max_depth: 6, learning_rate: 0.1}
+  lightgbm:            {enabled: true,  n_estimators: 400, max_depth: -1, learning_rate: 0.05}
+
+# Transformer models (heavy - opt-in). Requires torch + transformers installed.
+transformers:
+  enabled: false
+  models:
+    distilbert:  distilbert-base-uncased
+    deberta_v3:  microsoft/deberta-v3-small
+    roberta:     roberta-base
+  epochs: 3
+  batch_size: 8
+  max_length: 256
+
+# Weighted ensemble (weights auto-renormalized over available components)
+ensemble:
+  weights:
+    transformer: 0.40
+    xgboost:     0.20
+    svm:         0.20
+    rule_engine: 0.10
+    metadata:    0.10
+
+reputation:
+  online_checks: false      # set true to enable live WHOIS / HTTP checks
+  timeout_seconds: 5
+
+selection:
+  # metric used to auto-pick the best classical model
+  primary_metric: f1_macro

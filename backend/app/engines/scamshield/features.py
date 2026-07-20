@@ -19,9 +19,12 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
-
-# --- Reference project (read-only). Inserted first so its packages win. -------
-JOBSHIELD_ROOT = r"C:\Users\ABHIRAM\JobShieldAI"
+# --- Reference project (read-only). Vendored into this repo at _js/ so the
+# engine is self-contained and works in deployment (Render) without the local
+# JobShieldAI project. Inserted first so its packages win. -------------------
+import os as _os
+_JSPATH = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "_js")
+JOBSHIELD_ROOT = _JSPATH
 if JOBSHIELD_ROOT not in sys.path:
     sys.path.insert(0, JOBSHIELD_ROOT)
 
