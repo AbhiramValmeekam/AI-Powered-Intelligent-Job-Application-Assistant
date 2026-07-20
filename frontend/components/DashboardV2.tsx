@@ -61,6 +61,18 @@ const NAV: NavSection[] = [
 const NAV_ITEMS = NAV.flatMap((s) => s.items).filter((n) => !n.settings && !n.logout);
 const NAV_BY_ID: Record<string, NavItem> = Object.fromEntries(NAV_ITEMS.map((n) => [n.id, n]));
 
+// Mobile bottom-nav: a focused subset of the modules (icon + short label).
+// Mirrors the desktop nav so the app is fully navigable on phones.
+const MOBILE_NAV: NavItem[] = [
+  { id: "dashboard", title: "Home", sub: "Overview", Icon: IconHome },
+  { id: "jobs", title: "Jobs", sub: "Live discovery", Icon: IconBriefcase },
+  { id: "ats", title: "ATS", sub: "Score fit", Icon: IconSearchDoc },
+  { id: "skills", title: "Match", sub: "Skill gaps", Icon: IconTarget },
+  { id: "scam", title: "Scam", sub: "Fraud check", Icon: IconShield },
+  { id: "interview", title: "Interview", sub: "Practice", Icon: IconChat },
+  { id: "learning", title: "Learn", sub: "Upskill", Icon: IconBook },
+];
+
 const MODULE_BY_ID: Record<string, React.ComponentType> = {
   jobs: JobsModule, alerts: AlertsModule, jd: JdModule, tailor: TailorModule,
   cover: CoverModule, ats: AtsModule, skills: SkillsModule, scam: ScamModule,
@@ -406,6 +418,22 @@ export function DashboardV2() {
       {selected && <JobApplyModal job={selected} onClose={() => setSelected(null)} />}
 
       {editing && <EditProfileModal email={user?.primaryEmailAddress?.emailAddress || ""} onClose={() => setEditing(false)} />}
+
+      {/* ---------- MOBILE BOTTOM NAV (always visible <=680px) ---------- */}
+      <nav className="db3__bottomnav" aria-label="Primary mobile">
+        {MOBILE_NAV.map((n) => (
+          <button
+            key={n.id}
+            className={`db3__bnitem${active === n.id || (n.id === "dashboard" && active === null) ? " is-active" : ""}`}
+            onClick={() => (n.id === "dashboard" ? closeModule() : openModule(n.id))}
+            aria-current={n.id === "dashboard" && active === null ? "page" : undefined}
+            aria-label={n.title}
+          >
+            <span className="db3__bnicon"><n.Icon /></span>
+            <span className="db3__bntitle">{n.title}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }

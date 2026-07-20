@@ -3832,6 +3832,40 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
   .db3__herographic { display: none; }
   .db3__jobsearch { grid-template-columns: 1fr; }
   .db3__field--sm { max-width: none; }
+  /* leave room for the fixed bottom nav so content isn't obscured */
+  .db3__main { padding-bottom: 5.5rem; }
+}
+
+/* Mobile bottom navigation bar (replaces the hidden left nav on phones) */
+.db3__bottomnav {
+  display: none;
+}
+@media (max-width: 680px) {
+  .db3__bottomnav {
+    display: flex;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 40;
+    align-items: stretch;
+    justify-content: space-around;
+    gap: 0.15rem;
+    padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--canvas) 92%, transparent);
+    backdrop-filter: blur(14px) saturate(1.1);
+    -webkit-backdrop-filter: blur(14px) saturate(1.1);
+    border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  }
+  .db3__bnitem {
+    flex: 1 1 0;
+    display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
+    padding: 0.35rem 0.1rem;
+    border: none; background: transparent; cursor: pointer;
+    color: var(--ink); opacity: 0.62; border-radius: 12px;
+    transition: opacity 0.16s, background 0.16s;
+  }
+  .db3__bnitem.is-active { opacity: 1; background: color-mix(in srgb, var(--forest) 18%, transparent); }
+  .db3__bnicon { display: grid; place-items: center; width: 22px; height: 22px; }
+  .db3__bntitle { font-size: 0.6rem; letter-spacing: 0.02em; font-weight: 600; line-height: 1; }
 }
 
 /* Reduced motion */
