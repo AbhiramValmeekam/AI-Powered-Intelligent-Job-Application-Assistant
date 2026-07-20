@@ -221,17 +221,12 @@ export function CinematicLanding({ getStartedHref }: CinematicLandingProps) {
                 )
                 .to(
                   ".hero__word--cv",
-                  {
-                    scale: 7.8,
-                    xPercent: -7,
-                    yPercent: 8,
-                    transformOrigin: "54% 54%",
-                  },
+                  { xPercent: -54, autoAlpha: 0.16, scale: 0.84 },
                   0,
                 )
                 .to(
                   ".hero__resume-sheet",
-                  { xPercent: 42, scale: 1.42, rotation: 0 },
+                  { xPercent: 8, yPercent: -6, scale: 2.6, rotation: 0, transformOrigin: "50% 50%" },
                   0,
                 )
                 .to(
