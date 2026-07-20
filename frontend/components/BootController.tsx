@@ -1,19 +1,21 @@
 "use client";
 
 /**
- * BootController
- * --------------
- * Drives the "boot into CareerOS" experience on the /app route:
- *   loading (Clerk auth) -> CareerOS logo boot-in -> pause -> logo flies into
- *   the navbar -> dashboard fades in + regions stagger -> ambient background.
+ * BootController — cinematic "camera pull-back" transition.
+ * -----------------------------------------------------------
+ * The loading scene (gradient + particles + glass + CareerOS wordmark) and the
+ * dashboard both exist from the start, stacked in z-space. One master GSAP
+ * timeline overlaps every motion:
+ *   - the loading LAYER scales up (1 -> 1.15), blurs (0 -> 25px), fades out;
+ *   - the dashboard LAYER (already mounted underneath) scales down (1.08 -> 1),
+ *     un-blurs (20px -> 0), brightens (0.7 -> 1), fades in;
+ *   - depth layers move at slightly different speeds (parallax);
+ *   - cards emerge (blur + translateY + scale, stagger 0.05).
+ * Nothing translates aggressively or flies — it reads as the camera moving
+ * backward through the loading screen into the workspace.
  *
- * The dashboard (DashboardV2) is mounted underneath the boot overlay the whole
- * time; we only reveal it once the logo has travelled to the navbar. The real
- * .db3__brand in the sidebar stays hidden during the flight and is revealed as
- * the overlay logo arrives, so the hand-off is seamless.
- *
- * Replay policy: runs once per Clerk session (keyed by sessionId in
- * sessionStorage). Navigating back to /app in the same session skips the boot.
+ * Replay policy: runs once per Clerk session (keyed by sessionId).
+ * Reduced motion -> skip straight to ready.
  */
 
 import { useLayoutEffect, useRef, useState } from "react";
@@ -21,7 +23,7 @@ import { useUser, useAuth } from "@clerk/nextjs";
 import gsap from "gsap";
 import { DashboardV2 } from "./DashboardV2";
 
-type Phase = "loading" | "boot" | "ready";
+type Phase = "loading" | "ready";
 
 const BOOT_KEY = (sid?: string | null) => `careeros_booted_${sid ?? "anon"}`;
 
@@ -31,19 +33,19 @@ export default function BootController() {
   const [phase, setPhase] = useState<Phase>("loading");
 
   const rootRef = useRef<HTMLDivElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const logoFlyRef = useRef<HTMLDivElement>(null); // outer: flies to navbar
-  const logoInnerRef = useRef<HTMLDivElement>(null); // inner: gentle float
-  const dashRef = useRef<HTMLDivElement>(null);
-  const bgRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<HTMLDivElement>(null); // loading LAYER (camera group)
+  const bgRef = useRef<HTMLDivElement>(null); // loading bg gradient (far layer)
+  const particlesRef = useRef<HTMLDivElement>(null); // particles (mid layer)
+  const glassRef = useRef<HTMLDivElement>(null); // glass overlays (near layer)
+  const logoRef = useRef<HTMLDivElement>(null); // wordmark (attached to scene)
+  const dashRef = useRef<HTMLDivElement>(null); // dashboard LAYER (underneath)
 
-  // Decide early whether we should skip the animation (already booted).
   const skip =
     isLoaded && isSignedIn && typeof window !== "undefined" && sessionStorage.getItem(BOOT_KEY(sessionId));
 
   useLayoutEffect(() => {
-    if (!isLoaded || !isSignedIn) return; // wait for Clerk
-    if (skip) {
+    if (!isLoaded || !isSignedIn) return;
+    if (skip || phase === "ready") {
       setPhase("ready");
       return;
     }
@@ -54,130 +56,105 @@ export default function BootController() {
     }
 
     const ctx = gsap.context(() => {
-      const overlay = overlayRef.current!;
-      const fly = logoFlyRef.current!;
-      const inner = logoInnerRef.current!;
-      const dash = dashRef.current!;
+      const scene = sceneRef.current!;
       const bg = bgRef.current!;
+      const particles = particlesRef.current!;
+      const glass = glassRef.current!;
+      const logo = logoRef.current!;
+      const dash = dashRef.current!;
 
-      // --- initial states (set before paint; useLayoutEffect => no flash) ---
-      gsap.set(dash, { autoAlpha: 0, scale: 1.03, filter: "blur(8px)" });
-      gsap.set(bg, { autoAlpha: 0 });
-      gsap.set(".db3__brand", { autoAlpha: 0 }); // hide real navbar brand
-      gsap.set('[data-boot]', { autoAlpha: 0, y: 30 });
-
-      // inner logo floats gently (decoupled from the fly transform)
-      const floatTween = gsap.to(inner, {
-        y: -8,
-        duration: 1.8,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-      });
+      // --- initial states (before paint; useLayoutEffect => no flash) ---
+      // Loading layer calm and present.
+      gsap.set(scene, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
+      gsap.set(bg, { autoAlpha: 1, scale: 1 });
+      gsap.set(particles, { autoAlpha: 1, scale: 1, yPercent: 0 });
+      gsap.set(glass, { autoAlpha: 0.5 });
+      gsap.set(logo, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
+      // Dashboard hidden underneath, slightly larger + dim + blurred (camera far).
+      gsap.set(dash, { autoAlpha: 0, scale: 1.08, filter: "blur(20px)", brightness: 0.7 });
+      gsap.set("[data-boot]", { autoAlpha: 0, y: 16, scale: 0.98, filter: "blur(15px)" });
 
       const tl = gsap.timeline({
-        defaults: { ease: "power4.out" },
+        defaults: { ease: "power4.inOut" },
         onComplete: () => {
           sessionStorage.setItem(BOOT_KEY(sessionId), "1");
           setPhase("ready");
         },
       });
 
-      // Step 2: logo focus-pull — appears at full cinematic size, blur -> sharp,
-      // a soft rise. (No zoom-in here; the zoom-OUT is the fly to the navbar.)
-      tl.fromTo(
-        fly,
-        { autoAlpha: 0, scale: 1, filter: "blur(14px)", y: 14 },
-        { autoAlpha: 1, scale: 1, filter: "blur(0px)", y: 0, duration: 0.8, ease: "power4.out" },
-        0.4, // 400ms after mount (loader fade)
-      );
+      // LABELS — everything overlaps; nothing fully finishes before the next starts.
+      tl.addLabel("reveal", 0.35); // begin ~350ms after mount (auth settle)
 
-      // Step 3: pause 900ms (float continues).
-      tl.to({}, { duration: 0.9 });
+      // Loading LAYER pulls back: scale up, blur, fade. The camera moves away.
+      tl.to(scene, { scale: 1.15, filter: "blur(25px)", autoAlpha: 0, duration: 1.9 }, "reveal");
+      // Far bg recedes a touch faster (parallax depth).
+      tl.to(bg, { scale: 1.22, autoAlpha: 0, duration: 1.7 }, "reveal");
+      // Particles drift + recede.
+      tl.to(particles, { scale: 1.3, yPercent: -6, autoAlpha: 0, duration: 1.8 }, "reveal");
+      // Glass overlays soften first.
+      tl.to(glass, { autoAlpha: 0, duration: 0.9 }, "reveal");
+      // Wordmark stays attached to the scene: shrink + blur + fade (no travel).
+      tl.to(logo, { scale: 0.22, filter: "blur(15px)", autoAlpha: 0, duration: 1.7 }, "reveal");
 
-      // Step 4: fly logo into the navbar brand position.
-      const brand = document.querySelector<HTMLElement>(".db3__brand");
-      let dx = 0,
-        dy = 0,
-        targetScale = 0.28;
-      if (brand) {
-        const lr = fly.getBoundingClientRect();
-        const br = brand.getBoundingClientRect();
-        dx = br.left + br.width / 2 - (lr.left + lr.width / 2);
-        dy = br.top + br.height / 2 - (lr.top + lr.height / 2);
-        targetScale = br.width / lr.width;
-      }
-      tl.addLabel("fly");
-      // Clean camera pull-back: kill the float and re-center the inner text so
-      // the fly starts from a pristine position (no residual y from the float).
-      tl.add(() => {
-        floatTween.kill();
-        gsap.set(inner, { y: 0 });
-      }, "fly");
+      // Dashboard LAYER emerges: scale down, un-blur, brighten, fade in.
+      tl.to(dash, { autoAlpha: 1, scale: 1, filter: "blur(0px)", brightness: 1, duration: 1.9 }, "reveal+=0.15");
+
+      // Navbar first (guide the eye), then sidebar, greeting, widgets, charts…
+      const order = [
+        ".db3__topbar",
+        ".db3__nav",
+        ".db3__topactions",
+        ".db3__center",
+        ".db3__rail",
+      ];
       tl.to(
-        fly,
-        { x: dx, y: dy, scale: targetScale, duration: 1.6, ease: "power3.inOut" },
-        "fly",
+        order,
+        { autoAlpha: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.9, stagger: 0.08 },
+        "reveal+=0.55",
       );
-
-      // Step 5: dashboard fade in (blur + scale) while logo travels.
+      // Remaining [data-boot] cards emerge after the structure is in focus.
       tl.to(
-        dash,
-        { autoAlpha: 1, scale: 1, filter: "blur(0px)", duration: 0.7, ease: "power3.out" },
-        "fly+=0.15",
+        '[data-boot]:not(.db3__topbar):not(.db3__nav):not(.db3__topactions):not(.db3__center):not(.db3__rail)',
+        { autoAlpha: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.8, stagger: 0.05 },
+        "reveal+=0.95",
       );
-      // Step 6: stagger the dashboard regions.
-      tl.to(
-        "[data-boot]",
-        { autoAlpha: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.08 },
-        "fly+=0.35",
-      );
-      // Step 7: ambient background comes alive.
-      tl.to(bg, { autoAlpha: 1, duration: 2, ease: "power2.out" }, "fly");
-
-      // Step 4 (end): hand off — reveal real brand, drop overlay logo.
-      tl.to(".db3__brand", { autoAlpha: 1, duration: 0.2 }, "fly+=1.2");
-      tl.to(fly, { autoAlpha: 0, duration: 0.2 }, "fly+=1.2");
-      tl.to(overlay, { autoAlpha: 0, duration: 0.3 }, "fly+=1.25");
     }, rootRef);
 
     return () => ctx.revert();
-  }, [isLoaded, isSignedIn, skip, sessionId]);
+  }, [isLoaded, isSignedIn, skip, sessionId, phase]);
 
   return (
     <div ref={rootRef} className="boot-root">
-      {/* Dashboard lives underneath, hidden until the boot completes. */}
+      {/* Dashboard layer lives underneath the loading scene from the start. */}
       <div ref={dashRef} className="boot-dash">
         <DashboardV2 />
       </div>
 
-      {/* Ambient background layer (grid + gradient + particles). */}
-      <div ref={bgRef} className="boot-ambient" aria-hidden="true">
-        <div className="boot-ambient__grid" />
-        <div className="boot-ambient__glow" />
-        <div className="boot-ambient__particles">
-          {Array.from({ length: 14 }).map((_, i) => (
-            <span key={i} className="boot-particle" style={{ ["--i" as any]: i }} />
-          ))}
-        </div>
-      </div>
-
-      {/* Boot overlay: loader + centered logo. */}
+      {/* Loading scene (camera group) — only shown until ready. */}
       {phase !== "ready" && (
-        <div ref={overlayRef} className="boot-overlay" role="status" aria-live="polite">
-          {!isLoaded || !isSignedIn ? (
-            <div className="boot-loader">
-              <span className="boot-loader__spinner" />
-              <p>Preparing your workspace…</p>
-            </div>
-          ) : (
-            <div ref={logoFlyRef} className="boot-logo">
-              <div ref={logoInnerRef} className="boot-logo__text">
-                <span className="boot-logo__career">Career</span>
-                <span className="boot-logo__os">OS</span>
+        <div ref={sceneRef} className="boot-scene" role="status" aria-live="polite">
+          <div ref={bgRef} className="boot-scene__bg" aria-hidden="true" />
+          <div ref={particlesRef} className="boot-scene__particles" aria-hidden="true">
+            {Array.from({ length: 16 }).map((_, i) => (
+              <span key={i} className="boot-particle" style={{ ["--i" as any]: i }} />
+            ))}
+          </div>
+          <div ref={glassRef} className="boot-scene__glass" aria-hidden="true" />
+          <div className="boot-scene__center">
+            {!isLoaded || !isSignedIn ? (
+              <div className="boot-loader">
+                <span className="boot-loader__spinner" />
+                <p>Preparing your workspace…</p>
               </div>
-            </div>
-          )}
+            ) : (
+              <div ref={logoRef} className="boot-logo">
+                <div className="boot-logo__text">
+                  <span className="boot-logo__career">Career</span>
+                  <span className="boot-logo__os">OS</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
