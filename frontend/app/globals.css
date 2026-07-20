@@ -573,8 +573,8 @@
     display: flex;
     flex-direction: column;
     width: clamp(12rem, 20vw, 22rem);
-    height: min(53vh, 35rem);
-    min-height: 25rem;
+    height: min(60vh, 40rem);
+    min-height: 28rem;
     padding: 1.25rem;
     border: 1px solid #0e1211;
     background: var(--paper);
@@ -583,6 +583,38 @@
     transform-origin: center center;
     box-shadow: 1.15rem 1.15rem 0 var(--forest);
     will-change: transform;
+  }
+
+  .resume-sheet__role {
+    font-family: "Arial Narrow", "Helvetica Neue", sans-serif;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.4rem;
+  }
+
+  .resume-sheet__item {
+    font-family: "Arial Narrow", "Helvetica Neue", sans-serif;
+    font-size: 0.6rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: color-mix(in srgb, var(--paper-ink) 82%, transparent);
+    margin-bottom: 0.3rem;
+  }
+
+  .resume-sheet__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .resume-sheet__chips span {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.18rem 0.42rem;
+    border: 1px solid color-mix(in srgb, var(--paper-ink) 35%, transparent);
+    border-radius: 999px;
   }
 
   .resume-sheet__head {

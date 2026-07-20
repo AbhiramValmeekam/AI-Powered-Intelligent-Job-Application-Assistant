@@ -226,7 +226,7 @@ export function CinematicLanding({ getStartedHref }: CinematicLandingProps) {
                 )
                 .to(
                   ".hero__resume-sheet",
-                  { xPercent: 8, yPercent: -6, scale: 2.6, rotation: 0, transformOrigin: "50% 50%" },
+                  { xPercent: -22, yPercent: -18, scale: 3.1, rotation: 0, transformOrigin: "50% 50%" },
                   0,
                 )
                 .to(
@@ -535,14 +535,18 @@ export function CinematicLanding({ getStartedHref }: CinematicLandingProps) {
                 <span>YOUR NAME</span>
                 <span>01 / SOURCE</span>
               </div>
+              <div className="resume-sheet__role">AI / ML Engineer</div>
               <span className="resume-sheet__rule resume-sheet__rule--wide" />
-              <span className="resume-sheet__rule" />
-              <span className="resume-sheet__rule resume-sheet__rule--short" />
-              <span className="resume-sheet__label">EXPERIENCE</span>
+              <div className="resume-sheet__label">EXPERIENCE</div>
+              <div className="resume-sheet__item">Built a resume tailoring engine</div>
+              <div className="resume-sheet__item">Shipped 3 production APIs</div>
+              <div className="resume-sheet__item">Led 2 internship cycles</div>
               <span className="resume-sheet__rule resume-sheet__rule--wide" />
-              <span className="resume-sheet__rule" />
-              <span className="resume-sheet__label">SKILLS / EVIDENCE</span>
-              <span className="resume-sheet__rule resume-sheet__rule--short" />
+              <div className="resume-sheet__label">SKILLS / EVIDENCE</div>
+              <div className="resume-sheet__chips">
+                <span>Python</span><span>React</span><span>FastAPI</span>
+                <span>PyTorch</span><span>SQL</span>
+              </div>
             </div>
 
             <div className="hero__meta">
