@@ -211,7 +211,7 @@ export function CinematicLanding({ getStartedHref }: CinematicLandingProps) {
               });
             };
 
-            if (conditions.desktop) {
+            if (conditions.desktop || conditions.mobile) {
               const heroTimeline = makePinnedTimeline(".scene--hero", 0.95);
               heroTimeline
                 ?.to(
@@ -391,40 +391,6 @@ export function CinematicLanding({ getStartedHref }: CinematicLandingProps) {
                   { yPercent: 14 },
                   0,
                 );
-            }
-
-            if (conditions.mobile) {
-              const mobileScenes = [
-                [".scene--hero", ".hero__intro, .hero__title, .hero__meta"],
-                [".scene--read", ".read__headline, .read__signal, .read__teacher"],
-                [".scene--match", ".match__intro, .match__stop"],
-                [".scene--principles", ".principle"],
-                [".scene--move", ".boundary__row, .boundary__statement"],
-                [".scene--climax", ".climax__statement"],
-                [".scene--final", ".final__content"],
-              ] as const;
-
-              mobileScenes.forEach(([sceneSelector, targets]) => {
-                const scene = main.querySelector<HTMLElement>(sceneSelector);
-                if (!scene) return;
-
-                gsap
-                  .timeline({
-                    defaults: { ease: "none" },
-                    scrollTrigger: {
-                      trigger: scene,
-                      start: "top 86%",
-                      end: "bottom 34%",
-                      scrub: 0.65,
-                      invalidateOnRefresh: true,
-                    },
-                  })
-                  .from(targets, {
-                    y: 54,
-                    autoAlpha: 0.28,
-                    stagger: 0.07,
-                  });
-              });
             }
 
             const refreshFrame = requestAnimationFrame(() =>
