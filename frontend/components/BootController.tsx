@@ -83,17 +83,12 @@ export default function BootController() {
         },
       });
 
-      // Step 1+2: loader fade (phase swap handled in render) then logo boot-in.
-      tl.fromTo(
-        overlay,
-        { autoAlpha: 1 },
-        { autoAlpha: 1, duration: 0 }, // overlay already visible during loading
-        0,
-      );
+      // Step 2: logo focus-pull — appears at full cinematic size, blur -> sharp,
+      // a soft rise. (No zoom-in here; the zoom-OUT is the fly to the navbar.)
       tl.fromTo(
         fly,
-        { autoAlpha: 0, scale: 0.7, filter: "blur(12px)", y: 20 },
-        { autoAlpha: 1, scale: 1, filter: "blur(0px)", y: 0, duration: 0.7, ease: "power4.out" },
+        { autoAlpha: 0, scale: 1, filter: "blur(14px)", y: 14 },
+        { autoAlpha: 1, scale: 1, filter: "blur(0px)", y: 0, duration: 0.8, ease: "power4.out" },
         0.4, // 400ms after mount (loader fade)
       );
 
@@ -121,7 +116,7 @@ export default function BootController() {
       }, "fly");
       tl.to(
         fly,
-        { x: dx, y: dy, scale: targetScale, duration: 1.3, ease: "power4.inOut" },
+        { x: dx, y: dy, scale: targetScale, duration: 1.6, ease: "power3.inOut" },
         "fly",
       );
 

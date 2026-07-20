@@ -4227,7 +4227,8 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
   align-items: baseline;
   font-family: "Arial Black", "Helvetica Neue", sans-serif;
   font-weight: 900;
-  font-size: clamp(2.6rem, 8vw, 5rem);
+  /* Cinematic hero scale: matches the landing 'CAREER OS' wordmark. */
+  font-size: clamp(4.5rem, 22vw, 22rem);
   letter-spacing: -0.105em;
   line-height: 0.9;
   white-space: nowrap;
