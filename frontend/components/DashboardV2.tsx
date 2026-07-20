@@ -112,6 +112,7 @@ export function DashboardV2() {
   const [active, setActive] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   // Right-rail + resume data (live)
   const [stats, setStats] = useState<{ total: number; interview: number; ats: number } | null>(null);
@@ -472,7 +473,53 @@ export function DashboardV2() {
             <span className="db3__bntitle">{n.title}</span>
           </button>
         ))}
+        <button
+          className={`db3__bnitem${moreOpen ? " is-active" : ""}`}
+          onClick={() => setMoreOpen(true)}
+          aria-label="More features"
+          aria-expanded={moreOpen}
+        >
+          <span className="db3__bnicon"><IconLayers /></span>
+          <span className="db3__bntitle">More</span>
+        </button>
       </nav>
+
+      {/* ---------- MOBILE "MORE" SHEET: every feature ---------- */}
+      {moreOpen && (
+        <div
+          className="db3__moresheet" role="dialog" aria-modal="true" aria-label="All features"
+          onClick={(e) => { if (e.target === e.currentTarget) setMoreOpen(false); }}
+        >
+          <div className="db3__moresheet__panel">
+            <div className="db3__moresheet__head">
+              <span>All features</span>
+              <button className="db3__moresheet__close" onClick={() => setMoreOpen(false)} aria-label="Close">✕</button>
+            </div>
+            <div className="db3__moresheet__scroll">
+              {NAV.map((sec, i) => (
+                <div className="db3__moresheet__group" key={i}>
+                  {sec.heading && <div className="db3__moresheet__heading">{sec.heading}</div>}
+                  {sec.items
+                    .filter((it) => !it.settings && !it.logout)
+                    .map((it) => (
+                      <button
+                        key={it.id}
+                        className="db3__moresheet__item"
+                        onClick={() => { setMoreOpen(false); openModule(it.id); }}
+                      >
+                        <span className="db3__moresheet__icon"><it.Icon /></span>
+                        <span className="db3__moresheet__text">
+                          <span className="db3__moresheet__title">{it.title}</span>
+                          <span className="db3__moresheet__sub">{it.sub}</span>
+                        </span>
+                      </button>
+                    ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

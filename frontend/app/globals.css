@@ -3991,7 +3991,57 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
   }
   .db3__bnitem.is-active { opacity: 1; background: color-mix(in srgb, var(--forest) 18%, transparent); }
   .db3__bnicon { display: grid; place-items: center; width: 22px; height: 22px; }
-  .db3__bntitle { font-size: 0.6rem; letter-spacing: 0.02em; font-weight: 600; line-height: 1; }
+  .db3__bntitle { font-size: 0.56rem; letter-spacing: 0.02em; font-weight: 600; line-height: 1; }
+
+  /* Mobile "More" sheet — full feature list (mobile only) */
+  .db3__moresheet {
+    position: fixed; inset: 0; z-index: 60;
+    display: flex; align-items: flex-end; justify-content: stretch;
+    background: color-mix(in srgb, #000 55%, transparent);
+    animation: db3__fade 0.18s ease;
+  }
+  .db3__moresheet__panel {
+    width: 100%;
+    max-height: 82vh;
+    display: flex; flex-direction: column;
+    background: var(--canvas);
+    border-top: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -12px 40px color-mix(in srgb, #000 40%, transparent);
+    animation: db3__sheetup 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .db3__moresheet__head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.9rem 1rem 0.6rem;
+    font-weight: 700; font-size: 0.95rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+  .db3__moresheet__close {
+    border: none; background: color-mix(in srgb, var(--ink) 10%, transparent);
+    color: var(--ink); width: 30px; height: 30px; border-radius: 50%;
+    font-size: 0.9rem; cursor: pointer;
+  }
+  .db3__moresheet__scroll { overflow-y: auto; padding: 0.5rem 0.6rem 1.2rem; }
+  .db3__moresheet__heading {
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; opacity: 0.55;
+    padding: 0.7rem 0.5rem 0.3rem;
+  }
+  .db3__moresheet__item {
+    display: flex; align-items: center; gap: 0.75rem; width: 100%;
+    padding: 0.7rem 0.6rem; border: none; background: transparent;
+    color: var(--ink); text-align: left; cursor: pointer; border-radius: 12px;
+  }
+  .db3__moresheet__item:active { background: color-mix(in srgb, var(--forest) 14%, transparent); }
+  .db3__moresheet__icon {
+    display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 auto;
+    border-radius: 10px; background: color-mix(in srgb, var(--forest) 16%, transparent);
+  }
+  .db3__moresheet__text { display: flex; flex-direction: column; gap: 0.1rem; }
+  .db3__moresheet__title { font-weight: 600; font-size: 0.9rem; }
+  .db3__moresheet__sub { font-size: 0.72rem; opacity: 0.6; }
+  @keyframes db3__fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes db3__sheetup { from { transform: translateY(100%); } to { transform: translateY(0); } }
 }
 
 /* Reduced motion */
