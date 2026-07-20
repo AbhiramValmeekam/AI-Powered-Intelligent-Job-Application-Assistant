@@ -1,4 +1,4 @@
-import { DashboardV2 } from "@/components/DashboardV2";
+import BootController from "@/components/BootController";
 
 // /app uses Clerk client hooks (useUser/useClerk). Force dynamic rendering so it
 // is NOT statically prerendered at build time (prerender fails: "useUser can only
@@ -6,5 +6,5 @@ import { DashboardV2 } from "@/components/DashboardV2";
 export const dynamic = "force-dynamic";
 
 export default function AppHome() {
-  return <DashboardV2 />;
+  return <BootController />;
 }

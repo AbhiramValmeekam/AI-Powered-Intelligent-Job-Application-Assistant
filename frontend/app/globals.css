@@ -4146,3 +4146,87 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
   vertical-align: middle;
 }
 @media (max-width: 520px) { .modal__formgrid { grid-template-columns: 1fr; } }
+
+/* ============================================================= */
+/*  CareerOS boot sequence (BootController)                     */
+/* ============================================================= */
+.boot-root { position: relative; min-height: 100vh; }
+
+/* Dashboard sits beneath the overlay; GSAP toggles its reveal. */
+.boot-dash { position: relative; z-index: 1; }
+
+/* Ambient background layer (grid + glow + particles). */
+.boot-ambient {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  overflow: hidden; opacity: 0;
+}
+.boot-ambient__grid {
+  position: absolute; inset: -2px;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--ink) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--ink) 7%, transparent) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(circle at 50% 40%, #000 0%, transparent 78%);
+  -webkit-mask-image: radial-gradient(circle at 50% 40%, #000 0%, transparent 78%);
+}
+.boot-ambient__glow {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 50% at 18% 12%, color-mix(in srgb, var(--forest) 22%, transparent), transparent 70%),
+    radial-gradient(55% 45% at 85% 88%, color-mix(in srgb, var(--signal) 16%, transparent), transparent 70%);
+  filter: blur(8px);
+}
+.boot-ambient__particles { position: absolute; inset: 0; }
+.boot-particle {
+  position: absolute; top: 50%; left: 50%;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: color-mix(in srgb, var(--forest) 70%, #fff);
+  opacity: 0.5;
+  animation: boot-float 9s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.7s);
+  transform: rotate(calc(var(--i) * 25deg)) translateY(calc(-22vh + var(--i) * 3vh));
+}
+@keyframes boot-float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.25; }
+  50% { transform: translateY(-14px) scale(1.25); opacity: 0.7; }
+}
+
+/* Boot overlay (covers dashboard during loader + logo flight). */
+.boot-overlay {
+  position: fixed; inset: 0; z-index: 80;
+  display: grid; place-items: center;
+  background:
+    radial-gradient(70% 60% at 50% 45%, color-mix(in srgb, var(--forest) 14%, transparent), transparent 70%),
+    var(--canvas, #0a0d0c);
+}
+
+/* Loader (Clerk auth / preparing). */
+.boot-loader { display: grid; place-items: center; gap: 1rem; color: var(--muted); }
+.boot-loader__spinner {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--ink) 20%, transparent);
+  border-top-color: var(--forest);
+  animation: boot-spin 0.9s linear infinite;
+}
+@keyframes boot-spin { to { transform: rotate(360deg); } }
+
+/* The flying logo (outer element is transformed to the navbar). */
+.boot-logo {
+  will-change: transform, opacity, filter;
+  transform-origin: center center;
+}
+.boot-logo__text {
+  font-family: "Arial Narrow", "Helvetica Neue", sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.4rem, 7vw, 4.6rem);
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  text-shadow: 0 0 22px color-mix(in srgb, var(--forest) 60%, transparent),
+               0 0 4px color-mix(in srgb, var(--forest) 40%, transparent);
+  will-change: transform;
+}
+
+/* Reduced motion: skip the choreography. */
+@media (prefers-reduced-motion: reduce) {
+  .boot-particle, .boot-loader__spinner { animation: none; }
+}

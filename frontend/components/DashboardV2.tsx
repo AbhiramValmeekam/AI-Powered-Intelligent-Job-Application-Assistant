@@ -257,7 +257,7 @@ export function DashboardV2() {
   return (
     <div className="db3" data-app-motion>
       {/* ---------- LEFT NAV ---------- */}
-      <aside className="db3__nav" aria-label="Primary" data-lenis-prevent>
+      <aside className="db3__nav" aria-label="Primary" data-lenis-prevent data-boot>
         <div className="db3__brand">CareerOS</div>
         <nav className="db3__navlist" aria-label="Modules">
           {NAV.map((section, si) => (
@@ -285,7 +285,7 @@ export function DashboardV2() {
 
       {/* ---------- CENTER ---------- */}
       <main className="db3__main">
-        <header className="db3__topbar">
+        <header className="db3__topbar" data-boot>
           <div className="db3__search">
             <input
               value={query}
@@ -295,7 +295,7 @@ export function DashboardV2() {
               aria-label="Search jobs"
             />
           </div>
-          <div className="db3__topactions">
+          <div className="db3__topactions" data-boot>
             <button className="db3__iconbtn" aria-label="Notifications"><IconBell /></button>
             <button className="db3__iconbtn" aria-label="Toggle theme" onClick={() => {
               const root = document.documentElement;
@@ -346,7 +346,7 @@ export function DashboardV2() {
 
         {active === null ? (
           /* HOME */
-          <div className="db3__center" ref={searchRef}>
+          <div className="db3__center" ref={searchRef} data-boot>
             <section className="db3__hero">
               <div className="db3__herotext">
                 <p className="db3__herokick">CAREER WORKSPACE</p>
@@ -433,7 +433,7 @@ export function DashboardV2() {
       </main>
 
       {/* ---------- RIGHT RAIL ---------- */}
-      <aside className="db3__rail" aria-label="Status and analytics">
+      <aside className="db3__rail" aria-label="Status and analytics" data-boot>
         <section className="db3__readiness">
           <p className="db3__eyebrow">READINESS {scanning && <span className="db3__live">• scanning</span>}</p>
           <h2 className="db3__h2">Resume completeness</h2>
