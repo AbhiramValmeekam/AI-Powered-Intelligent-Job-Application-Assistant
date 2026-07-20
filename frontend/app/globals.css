@@ -4226,14 +4226,14 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
   -webkit-backdrop-filter: blur(2px);
 }
 
-/* Layer 3 (center): wordmark — attached to the scene, scales/fades with it. */
-.boot-scene__center {
-  position: relative;
-  z-index: 2;
+/* Wordmark now lives in its OWN fixed layer so it can fly to the navbar brand
+   (independent of the scene pull-back). Centered in the viewport initially. */
+.boot-wordmark {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
   display: grid;
   place-items: center;
-}
-.boot-logo {
   will-change: transform, opacity, filter;
   transform-origin: center center;
 }

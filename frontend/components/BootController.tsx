@@ -60,8 +60,11 @@ export default function BootController() {
       gsap.set(particles, { autoAlpha: 1, scale: 1, yPercent: 0 });
       gsap.set(glass, { autoAlpha: 0.5 });
       gsap.set(logo, { autoAlpha: 1, scale: 1, filter: "blur(0px)" });
-      gsap.set(dash, { autoAlpha: 0, scale: 1.08, filter: "blur(20px)", brightness: 0.7 });
+      gsap.set(dash, { autoAlpha: 1, scale: 1.08, filter: "blur(20px)", brightness: 0.7 });
       gsap.set("[data-boot]", { autoAlpha: 0, y: 16, scale: 0.98, filter: "blur(15px)" });
+      // Hide the real navbar brand until the wordmark lands in its place.
+      const brandEl = rootRef.current?.querySelector<HTMLElement>(".db3__brand");
+      if (brandEl) gsap.set(brandEl, { autoAlpha: 0 });
 
       const tl = gsap.timeline({
         defaults: { ease: "power4.inOut" },
@@ -74,13 +77,27 @@ export default function BootController() {
       tl.to(bg, { scale: 1.22, autoAlpha: 0, duration: 1.7 }, "reveal");
       tl.to(particles, { scale: 1.3, yPercent: -6, autoAlpha: 0, duration: 1.8 }, "reveal");
       tl.to(glass, { autoAlpha: 0, duration: 0.9 }, "reveal");
-      tl.to(logo, { scale: 0.22, filter: "blur(15px)", autoAlpha: 0, duration: 1.7 }, "reveal");
+      // Wordmark FLIES to the top-left navbar brand: compute target rect, tween
+      // the boot wordmark to land exactly on .db3__brand, then hand off to it.
+      const targetBrand = rootRef.current?.querySelector<HTMLElement>(".db3__brand");
+      if (targetBrand && logoRef.current) {
+        const tr = targetBrand.getBoundingClientRect();
+        const lr = (logoRef.current as HTMLElement).getBoundingClientRect();
+        const dx = tr.left + tr.width / 2 - (lr.left + lr.width / 2);
+        const dy = tr.top + tr.height / 2 - (lr.top + lr.height / 2);
+        const scale = tr.height / lr.height;
+        tl.to(logo, { x: dx, y: dy, scale, filter: "blur(0px)", duration: 1.5, ease: "power3.inOut" }, "reveal+=0.45");
+        tl.to(logo, { autoAlpha: 0, duration: 0.3 }, "reveal+=1.85");
+        tl.to(targetBrand, { autoAlpha: 1, duration: 0.4 }, "reveal+=1.85");
+      } else {
+        tl.to(logo, { scale: 0.22, filter: "blur(15px)", autoAlpha: 0, duration: 1.7 }, "reveal");
+      }
       tl.to(dash, { autoAlpha: 1, scale: 1, filter: "blur(0px)", brightness: 1, duration: 1.9 }, "reveal+=0.15");
 
       const order = [".db3__topbar", ".db3__nav", ".db3__topactions", ".db3__center", ".db3__rail"];
       tl.to(order, { autoAlpha: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.9, stagger: 0.08 }, "reveal+=0.55");
       tl.to(
-        '[data-boot]:not(.db3__topbar):not(.db3__nav):not(.db3__topactions):not(.db3__center):not(.db3__rail)',
+        '[data-boot]:not(.db3__topbar):not(.db3__nav):not(.db3__topactions):not(.db3__center):not(.db3__rail):not(.db3__brand)',
         { autoAlpha: 1, y: 0, scale: 1, filter: "blur(0px)", duration: 0.8, stagger: 0.05 },
         "reveal+=0.95",
       );
@@ -96,30 +113,33 @@ export default function BootController() {
         <DashboardV2 />
       </div>
 
-      {/* Loading scene (camera group) — only shown until ready. */}
+      {/* Loading scene (camera group: bg + particles + glass) — dissolves. */}
       {phase !== "ready" && (
-        <div ref={sceneRef} className="boot-scene" role="status" aria-live="polite">
-          <div ref={bgRef} className="boot-scene__bg" aria-hidden="true" />
-          <div ref={particlesRef} className="boot-scene__particles" aria-hidden="true">
-            {Array.from({ length: 16 }).map((_, i) => (
-              <span key={i} className="boot-particle" style={{ ["--i" as any]: i }} />
-            ))}
+        <>
+          <div ref={sceneRef} className="boot-scene" role="status" aria-live="polite">
+            <div ref={bgRef} className="boot-scene__bg" aria-hidden="true" />
+            <div ref={particlesRef} className="boot-scene__particles" aria-hidden="true">
+              {Array.from({ length: 16 }).map((_, i) => (
+                <span key={i} className="boot-particle" style={{ ["--i" as any]: i }} />
+              ))}
+            </div>
+            <div ref={glassRef} className="boot-scene__glass" aria-hidden="true" />
           </div>
-          <div ref={glassRef} className="boot-scene__glass" aria-hidden="true" />
-          <div className="boot-scene__center">
-            <div ref={logoRef} className="boot-logo">
-              <div className="boot-logo__text">
-                <span className="boot-logo__career">Career</span>
-                <span className="boot-logo__os">OS</span>
-              </div>
+
+          {/* Wordmark lives in its OWN fixed layer so it can fly to the top-left
+              and hand off to the navbar brand (independent of the scene pull-back). */}
+          <div ref={logoRef} className="boot-wordmark" aria-hidden="true">
+            <div className="boot-logo__text">
+              <span className="boot-logo__career">Career</span>
+              <span className="boot-logo__os">OS</span>
             </div>
             {!isLoaded && (
-              <div className="boot-loader boot-loader--mini" aria-hidden="true">
+              <div className="boot-loader boot-loader--mini">
                 <span className="boot-loader__spinner" />
               </div>
             )}
           </div>
-        </div>
+        </>
       )}
     </div>
   );
