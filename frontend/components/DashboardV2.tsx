@@ -113,6 +113,7 @@ export function DashboardV2() {
   const [editing, setEditing] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const moreSheetRef = useRef<HTMLDivElement | null>(null);
 
   // Right-rail + resume data (live)
   const [stats, setStats] = useState<{ total: number; interview: number; ats: number } | null>(null);
@@ -210,6 +211,33 @@ export function DashboardV2() {
     finally { setLoading(false); }
   }
   useEffect(() => { search(); /* eslint-disable-next-line */ }, []);
+
+  // Focus trap for the mobile "More" sheet: keep Tab focus inside the sheet,
+  // focus the close button on open, and close on Escape.
+  useEffect(() => {
+    if (!moreOpen) return;
+    const root = moreSheetRef.current;
+    if (!root) return;
+    const closeBtn = root.querySelector<HTMLButtonElement>(".db3__moresheet__close");
+    closeBtn?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setMoreOpen(false); return; }
+      if (e.key !== "Tab") return;
+      const f = root.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (f.length === 0) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [moreOpen]);
 
   const firstName = user?.firstName || user?.primaryEmailAddress?.emailAddress?.split("@")[0] || "there";
   const avatar = user?.imageUrl || "";
@@ -490,7 +518,7 @@ export function DashboardV2() {
           className="db3__moresheet" role="dialog" aria-modal="true" aria-label="All features"
           onClick={(e) => { if (e.target === e.currentTarget) setMoreOpen(false); }}
         >
-          <div className="db3__moresheet__panel">
+          <div className="db3__moresheet__panel" ref={moreSheetRef}>
             <div className="db3__moresheet__head">
               <span>All features</span>
               <button className="db3__moresheet__close" onClick={() => setMoreOpen(false)} aria-label="Close">✕</button>
