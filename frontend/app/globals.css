@@ -3839,7 +3839,14 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
   border-right: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
   background: color-mix(in srgb, var(--ink) 4%, transparent);
 }
-.db3__brand { font-weight: 800; letter-spacing: 0.04em; font-size: 1.15rem; color: var(--signal); padding: 0 0.6rem 1.3rem; }
+.db3__brand {
+  font-family: "Arial Black", "Helvetica Neue", sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  font-size: 1.15rem;
+  color: var(--ink);
+  padding: 0 0.6rem 1.3rem;
+}
 .db3__navlist { display: flex; flex-direction: column; gap: 0.2rem; }
 .db3__navitem {
   display: flex; align-items: center; gap: 0.75rem; width: 100%;
@@ -4216,14 +4223,24 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
   transform-origin: center center;
 }
 .boot-logo__text {
-  font-family: "Arial Narrow", "Helvetica Neue", sans-serif;
-  font-weight: 800;
-  font-size: clamp(2.4rem, 7vw, 4.6rem);
-  letter-spacing: 0.01em;
+  display: flex;
+  align-items: baseline;
+  font-family: "Arial Black", "Helvetica Neue", sans-serif;
+  font-weight: 900;
+  font-size: clamp(2.6rem, 8vw, 5rem);
+  letter-spacing: -0.105em;
+  line-height: 0.9;
+  white-space: nowrap;
   color: var(--ink);
-  text-shadow: 0 0 22px color-mix(in srgb, var(--forest) 60%, transparent),
-               0 0 4px color-mix(in srgb, var(--forest) 40%, transparent);
+  text-shadow: 0 0 26px color-mix(in srgb, var(--forest) 55%, transparent),
+               0 0 6px color-mix(in srgb, var(--forest) 35%, transparent);
   will-change: transform;
+}
+.boot-logo__career { color: var(--ink); }
+.boot-logo__os {
+  margin-left: 0.02em;
+  color: transparent;
+  -webkit-text-stroke: clamp(1px, 0.14vw, 3px) var(--ink);
 }
 
 /* Reduced motion: skip the choreography. */

@@ -113,13 +113,17 @@ export default function BootController() {
         targetScale = br.width / lr.width;
       }
       tl.addLabel("fly");
+      // Clean camera pull-back: kill the float and re-center the inner text so
+      // the fly starts from a pristine position (no residual y from the float).
+      tl.add(() => {
+        floatTween.kill();
+        gsap.set(inner, { y: 0 });
+      }, "fly");
       tl.to(
         fly,
-        { x: dx, y: dy, scale: targetScale, duration: 1.2, ease: "expo.inOut" },
+        { x: dx, y: dy, scale: targetScale, duration: 1.3, ease: "power4.inOut" },
         "fly",
       );
-      // stop the float once we start flying so transforms don't fight
-      tl.add(() => floatTween.pause(), "fly");
 
       // Step 5: dashboard fade in (blur + scale) while logo travels.
       tl.to(
@@ -174,7 +178,8 @@ export default function BootController() {
           ) : (
             <div ref={logoFlyRef} className="boot-logo">
               <div ref={logoInnerRef} className="boot-logo__text">
-                CareerOS
+                <span className="boot-logo__career">Career</span>
+                <span className="boot-logo__os">OS</span>
               </div>
             </div>
           )}
