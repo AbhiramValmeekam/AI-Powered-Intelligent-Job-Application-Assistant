@@ -37,13 +37,36 @@ from pathlib import Path
 from . import features as js  # reference-project bridge (sys.path injected)
 
 # --- Configuration -----------------------------------------------------------
-# Load trained artifacts. Prefer the JOBSHIELD_MODEL_DIR env (set in prod, e.g.
-# Render) and fall back to the original JobShieldAI project path used in local dev.
-# We do NOT copy the .joblib files into the repo — load from the canonical source.
+# --- Configuration ----------------------------------------------------------- # Load trained artifacts. We search a list of candidate directories (in order)
+# so the engine works both locally (JobShieldAI project) and in deployment
+# (Render: JOBSHIELD_MODEL_DIR -> /app/backend/models, which is committed into
+# the repo at backend/models/). Falling back across several locations makes the
+# deploy robust to env-path drift.
 import os as _os
-DEFAULT_MODEL_DIR = _os.environ.get(
-    "JOBSHIELD_MODEL_DIR", r"C:\Users\ABHIRAM\JobShieldAI\saved_models"
-)
+
+def _candidate_model_dirs() -> list[str]:
+    cands: list[str] = []
+    env = _os.environ.get("JOBSHIELD_MODEL_DIR")
+    if env:
+        cands.append(env)
+    # Deployed location (rootDir=backend -> /app/backend/models).
+    cands.append("/app/backend/models")
+    # Repo-relative location (backend/models) resolved from this file.
+    here = _os.path.dirname(_os.path.abspath(__file__))
+    cands.append(_os.path.join(here, "..", "..", "models"))  # backend/models
+    cands.append(_os.path.join(here, "models"))              # scamshield/models
+    # Local dev fallback.
+    cands.append(r"C:\Users\ABHIRAM\JobShieldAI\saved_models")
+    # de-dup, keep order
+    seen, out = set(), []
+    for c in cands:
+        rc = _os.path.normpath(c)
+        if rc not in seen:
+            seen.add(rc)
+            out.append(rc)
+    return out
+
+MODEL_DIR_CANDIDATES = _candidate_model_dirs()
 
 # Canonical 3-class labels used by the trained model + label encoder.
 _LABEL_CLASSES = ("Fraudulent", "Legitimate", "Suspicious")
@@ -69,17 +92,33 @@ _ENSEMBLE_WEIGHTS = {
 class ScamShieldEngine:
     """Detect scam / fraudulent job offers, internships and recruitment emails."""
 
-    def __init__(self, model_dir: str = DEFAULT_MODEL_DIR):
+    def __init__(self, model_dir: str | None = None):
+        # If a specific dir is given, use only it; otherwise search candidates.
         self.model_dir = model_dir
         self._artifacts = None  # lazily loaded + cached
 
     # ------------------------------------------------------------------ #
     # Artifact loading (resilient)
     # ------------------------------------------------------------------ #
+    def _resolve_dir(self) -> str:
+        """Return the first candidate dir that has all required artifacts."""
+        if self.model_dir:
+            return self.model_dir
+        required = [
+            "feature_pipeline.joblib",
+            "label_encoder.joblib",
+            "best_model.joblib",
+        ]
+        for d in MODEL_DIR_CANDIDATES:
+            if all(_exists(d, n) for n in required):
+                return d
+        # None matched — return the preferred (env or first) for the error msg.
+        return MODEL_DIR_CANDIDATES[0]
+
     def _load(self) -> dict:
         if self._artifacts is not None:
             return self._artifacts
-        d = self.model_dir
+        d = self._resolve_dir()
         required = [
             "feature_pipeline.joblib",
             "label_encoder.joblib",
@@ -87,11 +126,20 @@ class ScamShieldEngine:
         ]
         missing = [n for n in required if not _exists(d, n)]
         if missing:
+            # Report what IS present in each candidate dir to aid diagnosis.
+            found_report = []
+            for cd in MODEL_DIR_CANDIDATES:
+                try:
+                    present = [f for f in _os.listdir(cd) if f.endswith(".joblib")]
+                except Exception:
+                    present = ["<unreadable>"]
+                found_report.append(f"'{cd}' -> {present}")
             raise RuntimeError(
                 "ScamShieldEngine: required model artifacts are missing from "
-                f"'{d}': {missing}. "
-                "Point ScamShieldEngine(model_dir=...) at the JobShieldAI "
-                "saved_models directory, or restore the trained artifacts."
+                f"'{d}': {missing}. Searched candidates:\n"
+                + "\n".join(found_report)
+                + "\nRestore the trained .joblib artifacts (feature_pipeline, "
+                "label_encoder, best_model) to one of these directories."
             )
 
         try:
