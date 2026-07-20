@@ -2172,6 +2172,12 @@
       font-size: clamp(2.2rem, 11vw, 4rem);
     }
 
+    /* Match-scene giant 'CV' outline + horizontal track cards overflow on phones */
+    .match__origin { width: 88vw; padding: 0 5vw 1.8rem; }
+    .match__counter-word { font-size: 15vw; -webkit-text-stroke: 1.5px var(--paper-ink); }
+    .match__destination { width: 84vw; padding: 1.8rem 5vw; }
+    .match__stop { width: 80vw; }
+
     /* Generic big scene headlines: cap the vw so they fit phones */
     .read__headline { font-size: clamp(2rem, 8vw, 3.6rem); }
     .principle h3 { font-size: clamp(2.4rem, 13vw, 5rem); }
