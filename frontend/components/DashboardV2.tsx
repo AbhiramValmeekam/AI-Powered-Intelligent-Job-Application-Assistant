@@ -212,11 +212,13 @@ export function DashboardV2() {
   }
   useEffect(() => { search(); /* eslint-disable-next-line */ }, []);
 
-  // Focus trap for the mobile "More" sheet: keep Tab focus inside the sheet,
-  // focus the close button on open, and close on Escape.
+  // Focus trap + scroll lock for the mobile "More" sheet: keep Tab focus
+  // inside the sheet, focus the close button on open, close on Escape, and
+  // pause background (Lenis) scroll so the page behind doesn't move.
   useEffect(() => {
     if (!moreOpen) return;
     const root = moreSheetRef.current;
+    stopScroll(); // pause Lenis so wheeling/touching the sheet can't move the page
     if (!root) return;
     const closeBtn = root.querySelector<HTMLButtonElement>(".db3__moresheet__close");
     closeBtn?.focus();
@@ -236,7 +238,10 @@ export function DashboardV2() {
       }
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      startScroll(); // resume background scroll on close
+    };
   }, [moreOpen]);
 
   const firstName = user?.firstName || user?.primaryEmailAddress?.emailAddress?.split("@")[0] || "there";
@@ -523,7 +528,7 @@ export function DashboardV2() {
               <span>All features</span>
               <button className="db3__moresheet__close" onClick={() => setMoreOpen(false)} aria-label="Close">✕</button>
             </div>
-            <div className="db3__moresheet__scroll">
+            <div className="db3__moresheet__scroll" data-lenis-prevent>
               {NAV.map((sec, i) => (
                 <div className="db3__moresheet__group" key={i}>
                   {sec.heading && <div className="db3__moresheet__heading">{sec.heading}</div>}
