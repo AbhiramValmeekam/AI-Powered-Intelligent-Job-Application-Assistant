@@ -60,7 +60,7 @@ export function ResumeUpload({
         />
       </div>
       <textarea
-        style={{ width: "100%", background: "transparent", color: "inherit", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 10, padding: "0.7rem", font: "inherit" }}
+        style={{ width: "100%", background: "transparent", color: "inherit", border: "1px solid color-mix(in srgb, var(--ink) 18%, transparent)", borderRadius: 10, padding: "0.7rem", font: "inherit" }}
         rows={5}
         value={value}
         placeholder={placeholder}

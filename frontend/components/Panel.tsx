@@ -54,8 +54,8 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 
 export const inputStyle: React.CSSProperties = {
   width: "100%",
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.14)",
+  background: "color-mix(in srgb, var(--ink) 4%, transparent)",
+  border: "1px solid color-mix(in srgb, var(--ink) 14%, transparent)",
   borderRadius: 10,
   padding: "0.7rem 0.9rem",
   color: "inherit",
