@@ -3998,7 +3998,7 @@ html[data-theme="light"] .dmenu { background: rgba(18,22,20,0.92); color: #f4f2e
   .db3__jobsearch { grid-template-columns: 1fr; }
   .db3__field--sm { max-width: none; }
   /* leave room for the fixed bottom nav so content isn't obscured */
-  .db3__main { padding-bottom: 5.5rem; }
+  .db3__main { padding-bottom: 6rem; }
 }
 
 /* Mobile bottom navigation bar (replaces the hidden left nav on phones) */
