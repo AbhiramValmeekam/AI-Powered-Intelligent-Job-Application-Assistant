@@ -146,12 +146,13 @@ export default function GetStartedPage() {
             style={{
               whiteSpace: "pre-wrap",
               wordBreak: "break-word",
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "color-mix(in srgb, var(--ink) 4%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--ink) 14%, transparent)",
               borderRadius: 10,
               padding: "1.25rem",
               fontSize: 13,
               lineHeight: 1.5,
+              color: "var(--ink)",
             }}
           >
             {JSON.stringify(result, null, 2)}
@@ -164,11 +165,11 @@ export default function GetStartedPage() {
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "color-mix(in srgb, var(--ink) 4%, transparent)",
+  border: "1px solid color-mix(in srgb, var(--ink) 22%, transparent)",
   borderRadius: 10,
   padding: "0.75rem 0.9rem",
-  color: "inherit",
+  color: "var(--ink)",
   font: "inherit",
   resize: "vertical",
 };
